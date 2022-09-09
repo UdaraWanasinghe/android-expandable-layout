@@ -10,8 +10,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
     }
 }
 rootProject.name = "expandable-layout"
-include ':app'
+include ':example'
 include ':expandable-layout'
