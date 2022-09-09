@@ -51,7 +51,7 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 artifact androidSourcesJar
-                groupId = 'com.aureusapps.android.views'
+                groupId = 'com.aureusapps.android'
                 artifactId = 'expandable-layout'
                 version = version_name
             }
