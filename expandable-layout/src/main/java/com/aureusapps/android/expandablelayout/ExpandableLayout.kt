@@ -17,36 +17,50 @@ class ExpandableLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : ViewGroup(context, attrs) {
 
+    enum class ExpandDirection {
+        HORIZONTAL,
+        VERTICAL
+    }
+
+    interface OnStateChangeListener {
+        fun onStateChange(expandableLayout: ExpandableLayout, isExpanded: Boolean)
+    }
+
     companion object {
         private const val DEFAULT_DURATION = 300
     }
 
     // attributes
-    var expanded: Boolean
+    var isExpanded: Boolean
         private set
-    private var animator: ValueAnimator? = null
-    var duration: Long
-        private set
-    private var expandDirection: ExpandDirection
-    private var interpolator: TimeInterpolator = DecelerateInterpolator(2f)
+    var animationDuration: Long
+    var expandDirection: ExpandDirection = ExpandDirection.VERTICAL
+        set(value) {
+            field = value
+            if (isLaidOut) {
+                requestLayout()
+            }
+        }
+    var animationInterpolator: TimeInterpolator = DecelerateInterpolator(2f)
 
     // local
     private var maxWidth: Int = 0
     private var maxHeight: Int = 0
-    private val listeners: ArrayList<ExpandableLayoutListener> = ArrayList()
+    private val stateListeners: ArrayList<OnStateChangeListener> = ArrayList()
+    private var expandAnimator: ValueAnimator? = null
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.ExpandableLayout).apply {
-            expanded = getBoolean(R.styleable.ExpandableLayout_expanded, false)
-            duration = getInteger(R.styleable.ExpandableLayout_duration, DEFAULT_DURATION).toLong()
+            isExpanded = getBoolean(R.styleable.ExpandableLayout_expanded, false)
+            animationDuration = getInteger(R.styleable.ExpandableLayout_duration, DEFAULT_DURATION).toLong()
             expandDirection = getEnum(R.styleable.ExpandableLayout_expandDirection, ExpandDirection.VERTICAL)
             recycle()
         }
     }
 
     fun setExpanded(expanded: Boolean) {
-        if (this.expanded != expanded) {
-            this.expanded = expanded
+        if (this.isExpanded != expanded) {
+            this.isExpanded = expanded
             val layoutParams = layoutParams
             if (expandDirection == ExpandDirection.VERTICAL) {
                 layoutParams.height = if (expanded) maxHeight else 0
@@ -57,22 +71,15 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    fun setExpandDirection(direction: ExpandDirection) {
-        expandDirection = direction
-        if (isLaidOut) {
-            requestLayout()
-        }
+    @Suppress("unused")
+    fun addListener(listener: OnStateChangeListener) {
+        stateListeners.add(listener)
+        listener.onStateChange(this, isExpanded)
     }
 
     @Suppress("unused")
-    fun addListener(listener: ExpandableLayoutListener) {
-        listeners.add(listener)
-        listener.onExpandStateChanged(expanded)
-    }
-
-    @Suppress("unused")
-    fun removeListener(listener: ExpandableLayoutListener) {
-        listeners.remove(listener)
+    fun removeListener(listener: OnStateChangeListener) {
+        stateListeners.remove(listener)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -138,7 +145,7 @@ class ExpandableLayout @JvmOverloads constructor(
                 val exactHeight = if (heightMode == MeasureSpec.EXACTLY) {
                     MeasureSpec.getSize(heightMeasureSpec)
                 } else {
-                    if (expanded) maxHeight else 0
+                    if (isExpanded) maxHeight else 0
                 }
                 setMeasuredDimension(exactWidth, exactHeight)
             }
@@ -153,7 +160,7 @@ class ExpandableLayout @JvmOverloads constructor(
                 val exactWidth = if (widthMode == MeasureSpec.EXACTLY) {
                     MeasureSpec.getSize(widthMeasureSpec)
                 } else {
-                    if (expanded) maxWidth else 0
+                    if (isExpanded) maxWidth else 0
                 }
                 setMeasuredDimension(exactWidth, exactHeight)
             }
@@ -180,16 +187,16 @@ class ExpandableLayout @JvmOverloads constructor(
 
     @Suppress("unused")
     fun setInterpolator(interpolator: TimeInterpolator) {
-        this.interpolator = interpolator
+        this.animationInterpolator = interpolator
     }
 
     @Suppress("unused")
     fun toggleExpanded() {
-        expanded = !expanded
-        listeners.forEach {
-            it.onExpandStateChanged(expanded)
+        isExpanded = !isExpanded
+        stateListeners.forEach {
+            it.onStateChange(this, isExpanded)
         }
-        if (expanded) {
+        if (isExpanded) {
             if (expandDirection == ExpandDirection.VERTICAL) {
                 animateValue(0, maxHeight) { params, value -> params.height = value }
             } else {
@@ -205,20 +212,20 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private fun animateValue(fromValue: Int, toValue: Int, update: (LayoutParams, Int) -> Unit) {
-        animator?.cancel()
+        expandAnimator?.cancel()
         val animator = ValueAnimator.ofInt(fromValue, toValue)
-        animator.duration = this.duration
-        animator.interpolator = interpolator
+        animator.duration = this.animationDuration
+        animator.interpolator = animationInterpolator
         animator.addUpdateListener {
             val params = layoutParams
             update(params, it.animatedValue as Int)
             layoutParams = params
         }
         animator.doOnEnd {
-            this.animator = null
+            this.expandAnimator = null
         }
         animator.start()
-        this.animator = animator
+        this.expandAnimator = animator
     }
 
 }
