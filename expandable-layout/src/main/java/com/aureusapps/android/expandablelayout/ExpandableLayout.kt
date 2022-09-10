@@ -46,7 +46,7 @@ class ExpandableLayout @JvmOverloads constructor(
     // local
     private var maxWidth: Int = 0
     private var maxHeight: Int = 0
-    private val stateListeners: ArrayList<OnStateChangeListener> = ArrayList()
+    private val stateChangeListeners: ArrayList<OnStateChangeListener> = ArrayList()
     private var expandAnimator: ValueAnimator? = null
 
     init {
@@ -71,15 +71,13 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    @Suppress("unused")
-    fun addListener(listener: OnStateChangeListener) {
-        stateListeners.add(listener)
+    fun addStateChangeListener(listener: OnStateChangeListener) {
+        stateChangeListeners.add(listener)
         listener.onStateChange(this, isExpanded)
     }
 
-    @Suppress("unused")
-    fun removeListener(listener: OnStateChangeListener) {
-        stateListeners.remove(listener)
+    fun removeStateChangeListener(listener: OnStateChangeListener) {
+        stateChangeListeners.remove(listener)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -193,7 +191,7 @@ class ExpandableLayout @JvmOverloads constructor(
     @Suppress("unused")
     fun toggleExpanded() {
         isExpanded = !isExpanded
-        stateListeners.forEach {
+        stateChangeListeners.forEach {
             it.onStateChange(this, isExpanded)
         }
         if (isExpanded) {
