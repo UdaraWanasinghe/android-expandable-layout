@@ -1,17 +1,18 @@
 package com.aureusapps.android.expandablelayout
 
 import android.animation.TimeInterpolator
-import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
-import androidx.core.animation.doOnEnd
 import androidx.core.view.children
+import com.aureusapps.android.extensions.animate
 import com.aureusapps.android.extensions.getEnum
+import com.aureusapps.android.extensions.setHeight
+import com.aureusapps.android.extensions.setWidth
+import kotlinx.coroutines.Job
 import kotlin.math.max
 
-@Suppress("unused", "MemberVisibilityCanBePrivate")
 class ExpandableLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
@@ -30,10 +31,14 @@ class ExpandableLayout @JvmOverloads constructor(
         private const val DEFAULT_DURATION = 300
     }
 
-    // attributes
+    @Suppress("MemberVisibilityCanBePrivate")
     var isExpanded: Boolean
         private set
+
+    @Suppress("MemberVisibilityCanBePrivate")
     var animationDuration: Long
+
+    @Suppress("MemberVisibilityCanBePrivate")
     var expandDirection: ExpandDirection = ExpandDirection.VERTICAL
         set(value) {
             field = value
@@ -41,13 +46,14 @@ class ExpandableLayout @JvmOverloads constructor(
                 requestLayout()
             }
         }
+
+    @Suppress("MemberVisibilityCanBePrivate")
     var animationInterpolator: TimeInterpolator = DecelerateInterpolator(2f)
 
-    // local
     private var maxWidth: Int = 0
     private var maxHeight: Int = 0
     private val stateChangeListeners: ArrayList<OnStateChangeListener> = ArrayList()
-    private var expandAnimator: ValueAnimator? = null
+    private var animationJob: Job? = null
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.ExpandableLayout).apply {
@@ -56,28 +62,6 @@ class ExpandableLayout @JvmOverloads constructor(
             expandDirection = getEnum(R.styleable.ExpandableLayout_expandDirection, ExpandDirection.VERTICAL)
             recycle()
         }
-    }
-
-    fun setExpanded(expanded: Boolean) {
-        if (this.isExpanded != expanded) {
-            this.isExpanded = expanded
-            val layoutParams = layoutParams
-            if (expandDirection == ExpandDirection.VERTICAL) {
-                layoutParams.height = if (expanded) maxHeight else 0
-            } else {
-                layoutParams.width = if (expanded) maxWidth else 0
-            }
-            setLayoutParams(layoutParams)
-        }
-    }
-
-    fun addStateChangeListener(listener: OnStateChangeListener) {
-        stateChangeListeners.add(listener)
-        listener.onStateChange(this, isExpanded)
-    }
-
-    fun removeStateChangeListener(listener: OnStateChangeListener) {
-        stateChangeListeners.remove(listener)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -189,41 +173,62 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     @Suppress("unused")
-    fun toggleExpanded() {
-        isExpanded = !isExpanded
-        stateChangeListeners.forEach {
-            it.onStateChange(this, isExpanded)
-        }
-        if (isExpanded) {
-            if (expandDirection == ExpandDirection.VERTICAL) {
-                animateValue(0, maxHeight) { params, value -> params.height = value }
-            } else {
-                animateValue(0, maxWidth) { params, value -> params.width = value }
+    fun addStateChangeListener(listener: OnStateChangeListener) {
+        stateChangeListeners.add(listener)
+        listener.onStateChange(this, isExpanded)
+    }
+
+    @Suppress("unused")
+    fun removeStateChangeListener(listener: OnStateChangeListener) {
+        stateChangeListeners.remove(listener)
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun setExpanded(expand: Boolean, animate: Boolean = true) {
+        if (isExpanded != expand) {
+            isExpanded = expand
+            stateChangeListeners.forEach {
+                it.onStateChange(this, isExpanded)
             }
-        } else {
-            if (expandDirection == ExpandDirection.VERTICAL) {
-                animateValue(maxHeight, 0) { params, value -> params.height = value }
+            if (animationJob?.isActive == true) {
+                animationJob?.cancel()
+                animationJob = null
+            }
+            if (animate) {
+                if (expandDirection == ExpandDirection.VERTICAL) {
+                    val currentHeight = height
+                    animationJob = if (isExpanded) {
+                        val expandHeight = maxHeight - currentHeight
+                        val duration = animationDuration * expandHeight / maxHeight
+                        animate(currentHeight, maxHeight, duration, animationInterpolator) { setHeight(it) }
+                    } else {
+                        val duration = animationDuration * currentHeight / maxHeight
+                        animate(currentHeight, 0, duration, animationInterpolator) { setHeight(it) }
+                    }
+                } else {
+                    val currentWidth = width
+                    animationJob = if (isExpanded) {
+                        val expandWidth = maxWidth - currentWidth
+                        val duration = animationDuration * expandWidth / maxWidth
+                        animate(currentWidth, maxWidth, duration, animationInterpolator) { setWidth(it) }
+                    } else {
+                        val duration = animationDuration * currentWidth / maxWidth
+                        animate(currentWidth, 0, duration, animationInterpolator) { setWidth(it) }
+                    }
+                }
             } else {
-                animateValue(maxWidth, 0) { params, value -> params.width = value }
+                if (expandDirection == ExpandDirection.VERTICAL) {
+                    setHeight(if (isExpanded) maxHeight else 0)
+                } else {
+                    setWidth(if (isExpanded) maxWidth else 0)
+                }
             }
         }
     }
 
-    private fun animateValue(fromValue: Int, toValue: Int, update: (LayoutParams, Int) -> Unit) {
-        expandAnimator?.cancel()
-        val animator = ValueAnimator.ofInt(fromValue, toValue)
-        animator.duration = this.animationDuration
-        animator.interpolator = animationInterpolator
-        animator.addUpdateListener {
-            val params = layoutParams
-            update(params, it.animatedValue as Int)
-            layoutParams = params
-        }
-        animator.doOnEnd {
-            this.expandAnimator = null
-        }
-        animator.start()
-        this.expandAnimator = animator
+    @Suppress("unused")
+    fun toggleExpanded(animate: Boolean = true) {
+        setExpanded(!isExpanded, animate)
     }
 
 }

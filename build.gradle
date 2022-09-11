@@ -14,6 +14,7 @@ ext {
     material_version = "1.6.1"
     constraintlayout_version = "2.1.4"
     extensions_version = "1.0.0"
+    coroutines_version = "1.6.4"
 
     junit_version = "4.13.2"
     junit_ext_version = "1.1.3"

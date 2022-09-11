@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">expandable-layout</string>
+    <string name="collapse">Collapse</string>
+    <string name="ab">AB</string>
 </resources>
