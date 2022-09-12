@@ -186,15 +186,16 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
+    @Synchronized
     fun setExpanded(expand: Boolean, animate: Boolean = true) {
         if (isExpanded != expand) {
             isExpanded = expand
-            stateChangeListeners.forEach {
-                it.onStateChange(this, isExpanded)
-            }
             if (animationJob?.isActive == true) {
                 animationJob?.cancel()
                 animationJob = null
+            }
+            stateChangeListeners.forEach {
+                it.onStateChange(this, expand)
             }
             if (animate) {
                 if (expandDirection == ExpandDirection.VERTICAL) {
