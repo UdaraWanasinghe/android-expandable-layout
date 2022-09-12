@@ -1,17 +1,20 @@
 package com.aureusapps.android.expandablelayout
 
 import android.animation.TimeInterpolator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.TypedArray
 import android.util.AttributeSet
+import android.view.View
 import android.view.ViewGroup
 import android.view.animation.*
 import androidx.core.view.children
-import com.aureusapps.android.extensions.animate
 import com.aureusapps.android.extensions.getEnum
+import com.aureusapps.android.extensions.lifecycleScope
 import com.aureusapps.android.extensions.setHeight
 import com.aureusapps.android.extensions.setWidth
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlin.math.max
 
 class ExpandableLayout @JvmOverloads constructor(
@@ -245,6 +248,26 @@ class ExpandableLayout @JvmOverloads constructor(
             6 -> DecelerateInterpolator()
             7 -> OvershootInterpolator()
             else -> LinearInterpolator()
+        }
+    }
+
+    private fun View.animate(
+        from: Int,
+        to: Int,
+        duration: Long,
+        interpolator: TimeInterpolator,
+        callback: (Int) -> Unit
+    ): Job {
+        return lifecycleScope.launch {
+            val animator = ValueAnimator.ofInt(from, to)
+                .apply {
+                    this.duration = duration
+                    this.interpolator = interpolator
+                    this.addUpdateListener {
+                        callback(animatedValue as Int)
+                    }
+                }
+            animator.start()
         }
     }
 
