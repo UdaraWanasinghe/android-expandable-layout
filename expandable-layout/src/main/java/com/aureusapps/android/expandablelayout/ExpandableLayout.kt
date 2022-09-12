@@ -2,9 +2,10 @@ package com.aureusapps.android.expandablelayout
 
 import android.animation.TimeInterpolator
 import android.content.Context
+import android.content.res.TypedArray
 import android.util.AttributeSet
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
+import android.view.animation.*
 import androidx.core.view.children
 import com.aureusapps.android.extensions.animate
 import com.aureusapps.android.extensions.getEnum
@@ -58,8 +59,9 @@ class ExpandableLayout @JvmOverloads constructor(
     init {
         context.obtainStyledAttributes(attrs, R.styleable.ExpandableLayout).apply {
             isExpanded = getBoolean(R.styleable.ExpandableLayout_expanded, false)
-            animationDuration = getInteger(R.styleable.ExpandableLayout_duration, DEFAULT_DURATION).toLong()
             expandDirection = getEnum(R.styleable.ExpandableLayout_expandDirection, ExpandDirection.VERTICAL)
+            animationDuration = getInteger(R.styleable.ExpandableLayout_duration, DEFAULT_DURATION).toLong()
+            animationInterpolator = getInterpolator(R.styleable.ExpandableLayout_interpolator)
             recycle()
         }
     }
@@ -229,6 +231,20 @@ class ExpandableLayout @JvmOverloads constructor(
     @Suppress("unused")
     fun toggleExpanded(animate: Boolean = true) {
         setExpanded(!isExpanded, animate)
+    }
+
+    private fun TypedArray.getInterpolator(index: Int): TimeInterpolator {
+        return when (getInt(index, 6)) {
+            0 -> AccelerateDecelerateInterpolator()
+            1 -> AccelerateInterpolator()
+            2 -> AnticipateInterpolator()
+            3 -> AnticipateOvershootInterpolator()
+            4 -> BounceInterpolator()
+            5 -> CycleInterpolator(1f)
+            6 -> DecelerateInterpolator()
+            7 -> OvershootInterpolator()
+            else -> LinearInterpolator()
+        }
     }
 
 }
