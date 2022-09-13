@@ -5,15 +5,18 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.TypedArray
 import android.util.AttributeSet
-import android.view.View
 import android.view.ViewGroup
 import android.view.animation.*
 import androidx.core.view.children
+import androidx.core.view.doOnAttach
 import com.aureusapps.android.extensions.getEnum
 import com.aureusapps.android.extensions.lifecycleScope
 import com.aureusapps.android.extensions.setHeight
 import com.aureusapps.android.extensions.setWidth
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -29,6 +32,17 @@ class ExpandableLayout @JvmOverloads constructor(
 
     interface OnStateChangeListener {
         fun onStateChange(expandableLayout: ExpandableLayout, isExpanded: Boolean)
+    }
+
+    private data class ExpandTask(val expand: Boolean, val animate: Boolean)
+
+    private data class ExpandState(
+        val expandTask: ExpandTask? = null,
+        val previousState: ExpandState? = null
+    ) {
+        companion object {
+            val INITIAL = ExpandState()
+        }
     }
 
     companion object {
@@ -57,7 +71,8 @@ class ExpandableLayout @JvmOverloads constructor(
     private var maxWidth: Int = 0
     private var maxHeight: Int = 0
     private val stateChangeListeners: ArrayList<OnStateChangeListener> = ArrayList()
-    private var animationJob: Job? = null
+
+    private val expandTaskChannel = Channel<ExpandTask>()
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.ExpandableLayout).apply {
@@ -66,6 +81,66 @@ class ExpandableLayout @JvmOverloads constructor(
             animationDuration = getInteger(R.styleable.ExpandableLayout_duration, DEFAULT_DURATION).toLong()
             animationInterpolator = getInterpolator(R.styleable.ExpandableLayout_interpolator)
             recycle()
+        }
+        launchExpandTaskFlow()
+    }
+
+    private fun launchExpandTaskFlow() {
+        expandTaskChannel.receiveAsFlow()
+            .onStart {
+                emit(ExpandTask(isExpanded, false))
+            }
+            .scan(ExpandState.INITIAL) { previousState, task ->
+                ExpandState(task, previousState)
+            }
+            .filter { state ->
+                state.previousState?.expandTask?.expand != state.expandTask?.expand
+            }
+            .mapNotNull { it.expandTask }
+            .launch()
+    }
+
+    private fun Flow<ExpandTask>.launch() {
+        doOnAttach {
+            lifecycleScope.launch {
+                collectLatest { task ->
+                    val animate = task.animate
+                    val expand = task.expand
+                    isExpanded = expand
+                    stateChangeListeners.forEach {
+                        it.onStateChange(this@ExpandableLayout, expand)
+                    }
+                    if (animate) {
+                        if (expandDirection == ExpandDirection.VERTICAL) {
+                            val currentHeight = height
+                            if (expand) {
+                                val expandHeight = maxHeight - currentHeight
+                                val duration = animationDuration * expandHeight / maxHeight
+                                animate(currentHeight, maxHeight, duration, animationInterpolator) { setHeight(it) }
+                            } else {
+                                val duration = animationDuration * currentHeight / maxHeight
+                                animate(currentHeight, 0, duration, animationInterpolator) { setHeight(it) }
+                            }
+                        } else {
+                            val currentWidth = width
+                            if (expand) {
+                                val expandWidth = maxWidth - currentWidth
+                                val duration = animationDuration * expandWidth / maxWidth
+                                animate(currentWidth, maxWidth, duration, animationInterpolator) { setWidth(it) }
+                            } else {
+                                val duration = animationDuration * currentWidth / maxWidth
+                                animate(currentWidth, 0, duration, animationInterpolator) { setWidth(it) }
+                            }
+                        }
+                    } else {
+                        if (expandDirection == ExpandDirection.VERTICAL) {
+                            setHeight(if (expand) maxHeight else 0)
+                        } else {
+                            setWidth(if (expand) maxWidth else 0)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -180,7 +255,6 @@ class ExpandableLayout @JvmOverloads constructor(
     @Suppress("unused")
     fun addStateChangeListener(listener: OnStateChangeListener) {
         stateChangeListeners.add(listener)
-        listener.onStateChange(this, isExpanded)
     }
 
     @Suppress("unused")
@@ -191,44 +265,8 @@ class ExpandableLayout @JvmOverloads constructor(
     @Suppress("MemberVisibilityCanBePrivate")
     @Synchronized
     fun setExpanded(expand: Boolean, animate: Boolean = true) {
-        if (isExpanded != expand) {
-            isExpanded = expand
-            if (animationJob?.isActive == true) {
-                animationJob?.cancel()
-                animationJob = null
-            }
-            stateChangeListeners.forEach {
-                it.onStateChange(this, expand)
-            }
-            if (animate) {
-                if (expandDirection == ExpandDirection.VERTICAL) {
-                    val currentHeight = height
-                    animationJob = if (isExpanded) {
-                        val expandHeight = maxHeight - currentHeight
-                        val duration = animationDuration * expandHeight / maxHeight
-                        animate(currentHeight, maxHeight, duration, animationInterpolator) { setHeight(it) }
-                    } else {
-                        val duration = animationDuration * currentHeight / maxHeight
-                        animate(currentHeight, 0, duration, animationInterpolator) { setHeight(it) }
-                    }
-                } else {
-                    val currentWidth = width
-                    animationJob = if (isExpanded) {
-                        val expandWidth = maxWidth - currentWidth
-                        val duration = animationDuration * expandWidth / maxWidth
-                        animate(currentWidth, maxWidth, duration, animationInterpolator) { setWidth(it) }
-                    } else {
-                        val duration = animationDuration * currentWidth / maxWidth
-                        animate(currentWidth, 0, duration, animationInterpolator) { setWidth(it) }
-                    }
-                }
-            } else {
-                if (expandDirection == ExpandDirection.VERTICAL) {
-                    setHeight(if (isExpanded) maxHeight else 0)
-                } else {
-                    setWidth(if (isExpanded) maxWidth else 0)
-                }
-            }
+        lifecycleScope.launch {
+            expandTaskChannel.send(ExpandTask(expand, animate))
         }
     }
 
@@ -251,23 +289,26 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    private fun View.animate(
+    private suspend fun animate(
         from: Int,
         to: Int,
         duration: Long,
         interpolator: TimeInterpolator,
         callback: (Int) -> Unit
-    ): Job {
-        return lifecycleScope.launch {
-            val animator = ValueAnimator.ofInt(from, to)
-                .apply {
-                    this.duration = duration
-                    this.interpolator = interpolator
-                    this.addUpdateListener {
-                        callback(animatedValue as Int)
-                    }
+    ) {
+        val animator = ValueAnimator.ofInt(from, to)
+            .apply {
+                this.duration = duration
+                this.interpolator = interpolator
+                this.addUpdateListener {
+                    callback(animatedValue as Int)
                 }
+            }
+        try {
             animator.start()
+            delay(duration)
+        } catch (e: CancellationException) {
+            animator.cancel()
         }
     }
 
