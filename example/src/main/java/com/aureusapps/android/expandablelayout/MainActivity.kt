@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
             expandableLayout.toggleExpanded()
         }
         expandableLayout.addStateChangeListener(object : ExpandableLayout.OnStateChangeListener {
-            override fun onStateChange(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
+            override fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
                 button.text = if (isExpanded) "Collapse" else "Expand"
             }
         })

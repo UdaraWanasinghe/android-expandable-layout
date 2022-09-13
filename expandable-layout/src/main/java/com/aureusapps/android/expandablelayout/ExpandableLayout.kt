@@ -7,6 +7,11 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import androidx.core.view.children
 import androidx.core.view.doOnAttach
+import androidx.core.view.doOnNextLayout
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.aureusapps.android.extensions.lifecycleScope
 import com.aureusapps.android.extensions.setHeight
 import com.aureusapps.android.extensions.setWidth
@@ -22,7 +27,7 @@ class ExpandableLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
-) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
+) : ViewGroup(context, attrs, defStyleAttr, defStyleRes), DefaultLifecycleObserver {
 
     enum class ExpandDirection {
         HORIZONTAL,
@@ -30,7 +35,7 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     interface OnStateChangeListener {
-        fun onStateChange(expandableLayout: ExpandableLayout, isExpanded: Boolean)
+        fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean)
     }
 
     private data class ExpandTask(val expand: Boolean, val animate: Boolean)
@@ -58,14 +63,26 @@ class ExpandableLayout @JvmOverloads constructor(
     private var interpolator: TimeInterpolator = layoutHelper.interpolator
 
     init {
-        launchExpandTaskFlow()
+        doOnAttach {
+            val lifecycleOwner = findViewTreeLifecycleOwner() ?: return@doOnAttach
+            lifecycleOwner.lifecycle.addObserver(this)
+        }
+        doOnNextLayout {
+            val lifecycleOwner = findViewTreeLifecycleOwner() ?: return@doOnNextLayout
+            lifecycleOwner.lifecycleScope.launch {
+                expandTaskChannel.send(ExpandTask(expanded, false))
+            }
+        }
     }
 
-    private fun launchExpandTaskFlow() {
+    override fun onCreate(owner: LifecycleOwner) {
+        owner.lifecycleScope.launch {
+            launchExpandTaskFlow()
+        }
+    }
+
+    private suspend fun launchExpandTaskFlow() {
         expandTaskChannel.receiveAsFlow()
-            .onStart {
-                emit(ExpandTask(expanded, false))
-            }
             .scan(ExpandState.INITIAL) { previousState, task ->
                 ExpandState(task, previousState)
             }
@@ -73,51 +90,43 @@ class ExpandableLayout @JvmOverloads constructor(
                 state.previousState?.expandTask?.expand != state.expandTask?.expand
             }
             .mapNotNull { it.expandTask }
-            .launch()
-    }
-
-    private fun Flow<ExpandTask>.launch() {
-        doOnAttach {
-            lifecycleScope.launch {
-                collectLatest { task ->
-                    val animate = task.animate
-                    val expand = task.expand
-                    expanded = expand
-                    stateChangeListeners.forEach {
-                        it.onStateChange(this@ExpandableLayout, expand)
-                    }
-                    if (animate) {
-                        if (expandDirection == ExpandDirection.VERTICAL) {
-                            val currentHeight = height
-                            if (expand) {
-                                val expandHeight = maxHeight - currentHeight
-                                val duration = duration * expandHeight / maxHeight
-                                animate(currentHeight, maxHeight, duration, interpolator) { setHeight(it) }
-                            } else {
-                                val duration = duration * currentHeight / maxHeight
-                                animate(currentHeight, 0, duration, interpolator) { setHeight(it) }
-                            }
+            .collectLatest { task ->
+                val animate = task.animate
+                val expand = task.expand
+                expanded = expand
+                stateChangeListeners.forEach {
+                    it.onStateChanged(this@ExpandableLayout, expand)
+                }
+                if (animate) {
+                    if (expandDirection == ExpandDirection.VERTICAL) {
+                        val currentHeight = height
+                        if (expand) {
+                            val expandHeight = maxHeight - currentHeight
+                            val duration = duration * expandHeight / maxHeight
+                            animate(currentHeight, maxHeight, duration, interpolator) { setHeight(it) }
                         } else {
-                            val currentWidth = width
-                            if (expand) {
-                                val expandWidth = maxWidth - currentWidth
-                                val duration = duration * expandWidth / maxWidth
-                                animate(currentWidth, maxWidth, duration, interpolator) { setWidth(it) }
-                            } else {
-                                val duration = duration * currentWidth / maxWidth
-                                animate(currentWidth, 0, duration, interpolator) { setWidth(it) }
-                            }
+                            val duration = duration * currentHeight / maxHeight
+                            animate(currentHeight, 0, duration, interpolator) { setHeight(it) }
                         }
                     } else {
-                        if (expandDirection == ExpandDirection.VERTICAL) {
-                            setHeight(if (expand) maxHeight else 0)
+                        val currentWidth = width
+                        if (expand) {
+                            val expandWidth = maxWidth - currentWidth
+                            val duration = duration * expandWidth / maxWidth
+                            animate(currentWidth, maxWidth, duration, interpolator) { setWidth(it) }
                         } else {
-                            setWidth(if (expand) maxWidth else 0)
+                            val duration = duration * currentWidth / maxWidth
+                            animate(currentWidth, 0, duration, interpolator) { setWidth(it) }
                         }
+                    }
+                } else {
+                    if (expandDirection == ExpandDirection.VERTICAL) {
+                        setHeight(if (expand) maxHeight else 0)
+                    } else {
+                        setWidth(if (expand) maxWidth else 0)
                     }
                 }
             }
-        }
     }
 
     private suspend fun animate(
@@ -254,6 +263,7 @@ class ExpandableLayout @JvmOverloads constructor(
     @Suppress("unused")
     fun addStateChangeListener(listener: OnStateChangeListener) {
         stateChangeListeners.add(listener)
+        listener.onStateChanged(this, expanded)
     }
 
     @Suppress("unused")
