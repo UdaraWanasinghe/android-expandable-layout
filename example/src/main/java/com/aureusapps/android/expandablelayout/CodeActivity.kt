@@ -1,5 +1,8 @@
 package com.aureusapps.android.expandablelayout
 
+import android.annotation.SuppressLint
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup
@@ -7,16 +10,20 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.aureusapps.android.extensions.addView
 import com.aureusapps.android.extensions.generateLayoutParams
+import com.aureusapps.android.extensions.setTextStyle
 import com.google.android.material.button.MaterialButton
 
+@Suppress("NestedLambdaShadowedImplicitParameter")
 class CodeActivity : AppCompatActivity() {
 
     private lateinit var expandableLayout: ExpandableLayout
     private lateinit var materialButton: MaterialButton
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -30,6 +37,7 @@ class CodeActivity : AppCompatActivity() {
                 MaterialButton(it.context)
                     .apply {
                         materialButton = this
+                        layoutParams = it.generateLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
                         setText(R.string.collapse)
                         setOnClickListener {
                             expandableLayout.toggleExpanded()
@@ -50,6 +58,18 @@ class CodeActivity : AppCompatActivity() {
                                 materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)
                             }
                         })
+                    }
+                    .addView {
+                        TextView(it.context)
+                            .apply {
+                                layoutParams = it.generateLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                                text = "HELLO WORLD"
+                                setTextStyle(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline1)
+                                setTextColor(Color.WHITE)
+                                setBackgroundResource(R.drawable.frame)
+                                textAlignment = TextView.TEXT_ALIGNMENT_CENTER
+                                setTypeface(typeface, Typeface.BOLD)
+                            }
                     }
             }
         setContentView(rootView)
