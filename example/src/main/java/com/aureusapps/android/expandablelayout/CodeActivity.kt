@@ -12,7 +12,9 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.setMargins
 import com.aureusapps.android.extensions.addView
+import com.aureusapps.android.extensions.dp
 import com.aureusapps.android.extensions.generateLayoutParams
 import com.aureusapps.android.extensions.setTextStyle
 import com.google.android.material.button.MaterialButton
@@ -52,7 +54,7 @@ class CodeActivity : AppCompatActivity() {
                         setExpandDirection(ExpandableLayout.ExpandDirection.VERTICAL)
                         setExpanded(true)
                         setInterpolator(DecelerateInterpolator())
-                        setDuration(300)
+                        setDuration(2000)
                         addStateChangeListener(object : ExpandableLayout.OnStateChangeListener {
                             override fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
                                 materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)
@@ -62,7 +64,10 @@ class CodeActivity : AppCompatActivity() {
                     .addView {
                         TextView(it.context)
                             .apply {
-                                layoutParams = it.generateLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                                layoutParams = ViewGroup.MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                                    .apply {
+                                        setMargins(16.dp)
+                                    }
                                 text = "HELLO WORLD"
                                 setTextStyle(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline1)
                                 setTextColor(Color.WHITE)
