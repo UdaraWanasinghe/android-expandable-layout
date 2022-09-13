@@ -4,10 +4,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 
-class MainActivity : AppCompatActivity() {
+class XmlLayoutActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_xml_layout)
 
         val expandableLayout = findViewById<ExpandableLayout>(R.id.expandable_layout)
         val button = findViewById<MaterialButton>(R.id.button)
