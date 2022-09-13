@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.aureusapps.android.extensions.addView
@@ -28,25 +29,27 @@ class CodeActivity : AppCompatActivity() {
             .addView {
                 MaterialButton(it.context)
                     .apply {
+                        materialButton = this
                         setText(R.string.collapse)
                         setOnClickListener {
                             expandableLayout.toggleExpanded()
                         }
-                        materialButton = this
                     }
             }
             .addView {
                 ExpandableLayout(it.context)
                     .apply {
+                        expandableLayout = this
                         layoutParams = it.generateLayoutParams(MATCH_PARENT, WRAP_CONTENT)
                         setExpandDirection(ExpandableLayout.ExpandDirection.VERTICAL)
                         setExpanded(true)
+                        setInterpolator(DecelerateInterpolator())
+                        setDuration(300)
                         addStateChangeListener(object : ExpandableLayout.OnStateChangeListener {
                             override fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
                                 materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)
                             }
                         })
-                        expandableLayout = this
                     }
             }
         setContentView(rootView)
