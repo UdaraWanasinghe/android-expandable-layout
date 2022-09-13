@@ -6,20 +6,21 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
 import androidx.core.view.children
-import androidx.core.view.doOnAttach
-import androidx.core.view.doOnNextLayout
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.aureusapps.android.extensions.lifecycleScope
 import com.aureusapps.android.extensions.setHeight
 import com.aureusapps.android.extensions.setWidth
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
 
 class ExpandableLayout @JvmOverloads constructor(
@@ -49,8 +50,8 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    private var maxWidth: Int = 0
-    private var maxHeight: Int = 0
+    private var maxWidth: Int = -1
+    private var maxHeight: Int = -1
     private val stateChangeListeners: ArrayList<OnStateChangeListener> = ArrayList()
     private val expandTaskChannel = Channel<ExpandTask>()
 
@@ -62,32 +63,47 @@ class ExpandableLayout @JvmOverloads constructor(
     private var duration: Long = layoutHelper.duration
     private var interpolator: TimeInterpolator = layoutHelper.interpolator
 
-    init {
-        doOnAttach {
-            val lifecycleOwner = findViewTreeLifecycleOwner() ?: return@doOnAttach
-            lifecycleOwner.lifecycle.addObserver(this)
-        }
-        doOnNextLayout {
-            val lifecycleOwner = findViewTreeLifecycleOwner() ?: return@doOnNextLayout
-            lifecycleOwner.lifecycleScope.launch {
-                expandTaskChannel.send(ExpandTask(expanded, false))
+    private var lifecycleOwner: LifecycleOwner? = null
+    private var expandTaskFlowJob: Job? = null
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        updateLifecycleOwner()
+    }
+
+    private fun updateLifecycleOwner() {
+        val newLifecycleOwner = findViewTreeLifecycleOwner()
+        if (lifecycleOwner != newLifecycleOwner) {
+            // cancel last job
+            if (expandTaskFlowJob?.isActive == true) {
+                expandTaskFlowJob?.cancel()
             }
+            // remove last observer
+            lifecycleOwner?.lifecycle?.removeObserver(this)
+            // subscribe to the new lifecycle owner
+            newLifecycleOwner?.lifecycle?.addObserver(this)
+            lifecycleOwner = newLifecycleOwner
         }
     }
 
     override fun onCreate(owner: LifecycleOwner) {
-        owner.lifecycleScope.launch {
+        expandTaskFlowJob = owner.lifecycleScope.launch {
             launchExpandTaskFlow()
         }
     }
 
     private suspend fun launchExpandTaskFlow() {
         expandTaskChannel.receiveAsFlow()
+            .onStart {
+                emit(ExpandTask(expanded, false))
+            }
             .scan(ExpandState.INITIAL) { previousState, task ->
                 ExpandState(task, previousState)
             }
             .filter { state ->
-                state.previousState?.expandTask?.expand != state.expandTask?.expand
+                val lastExpandedState = state.previousState?.expandTask?.expand
+                val nextExpandState = state.expandTask?.expand
+                lastExpandedState != nextExpandState
             }
             .mapNotNull { it.expandTask }
             .collectLatest { task ->
@@ -100,6 +116,7 @@ class ExpandableLayout @JvmOverloads constructor(
                 if (animate) {
                     if (expandDirection == ExpandDirection.VERTICAL) {
                         val currentHeight = height
+                        val maxHeight = getMaxHeight()
                         if (expand) {
                             val expandHeight = maxHeight - currentHeight
                             val duration = duration * expandHeight / maxHeight
@@ -110,6 +127,7 @@ class ExpandableLayout @JvmOverloads constructor(
                         }
                     } else {
                         val currentWidth = width
+                        val maxWidth = getMaxWidth()
                         if (expand) {
                             val expandWidth = maxWidth - currentWidth
                             val duration = duration * expandWidth / maxWidth
@@ -121,12 +139,32 @@ class ExpandableLayout @JvmOverloads constructor(
                     }
                 } else {
                     if (expandDirection == ExpandDirection.VERTICAL) {
+                        val maxHeight = getMaxHeight()
                         setHeight(if (expand) maxHeight else 0)
                     } else {
+                        val maxWidth = getMaxWidth()
                         setWidth(if (expand) maxWidth else 0)
                     }
                 }
             }
+    }
+
+    private suspend fun getMaxWidth(): Int {
+        if (maxWidth > -1) return maxWidth
+        return suspendCoroutine { continuation ->
+            doOnLayout {
+                continuation.resume(maxWidth)
+            }
+        }
+    }
+
+    private suspend fun getMaxHeight(): Int {
+        if (maxHeight > -1) return maxHeight
+        return suspendCoroutine { continuation ->
+            doOnLayout {
+                continuation.resume(maxHeight)
+            }
+        }
     }
 
     private suspend fun animate(
@@ -256,6 +294,17 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     @Suppress("unused")
+    fun setExpandDirection(direction: ExpandDirection) {
+        this.expandDirection = direction
+        requestLayout()
+    }
+
+    @Suppress("unused")
+    fun setDuration(duration: Long) {
+        this.duration = duration
+    }
+
+    @Suppress("unused")
     fun setInterpolator(interpolator: TimeInterpolator) {
         this.interpolator = interpolator
     }
@@ -273,8 +322,12 @@ class ExpandableLayout @JvmOverloads constructor(
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun setExpanded(expand: Boolean, animate: Boolean = true) {
-        lifecycleScope.launch {
-            expandTaskChannel.send(ExpandTask(expand, animate))
+        lifecycleOwner?.let { owner ->
+            owner.lifecycleScope.launch {
+                expandTaskChannel.send(ExpandTask(expand, animate))
+            }
+        } ?: run {
+            expanded = expand
         }
     }
 
