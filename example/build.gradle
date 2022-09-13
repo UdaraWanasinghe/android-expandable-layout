@@ -37,6 +37,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$appcompat_version"
     implementation "com.google.android.material:material:$material_version"
     implementation "androidx.constraintlayout:constraintlayout:$constraintlayout_version"
+    implementation "com.aureusapps.android:extensions:$extensions_version"
 
     implementation project(":expandable-layout")
 

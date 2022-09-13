@@ -2,4 +2,5 @@
     <string name="app_name">expandable-layout</string>
     <string name="collapse">Collapse</string>
     <string name="hello_world">HELLO WORLD</string>
+    <string name="expand">Expand</string>
 </resources>
