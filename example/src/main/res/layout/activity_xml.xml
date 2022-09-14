@@ -24,6 +24,7 @@
         app:duration="2000"
         app:expandDirection="vertical"
         app:expanded="true"
+        app:gravity="center"
         app:interpolator="decelerate">
 
         <TextView

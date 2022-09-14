@@ -3,6 +3,7 @@ package com.aureusapps.android.expandablelayout
 import android.animation.TimeInterpolator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.ViewGroup
 import androidx.core.view.children
@@ -29,6 +30,16 @@ class ExpandableLayout @JvmOverloads constructor(
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes), DefaultLifecycleObserver {
+
+    companion object {
+        const val LEFT = 0x01
+        const val CENTER_HORIZONTAL = 0x02
+        const val RIGHT = 0x04
+        const val TOP = 0x10
+        const val CENTER_VERTICAL = 0x20
+        const val BOTTOM = 0x40
+        const val CENTER = 0x22
+    }
 
     enum class ExpandDirection {
         HORIZONTAL,
@@ -62,6 +73,7 @@ class ExpandableLayout @JvmOverloads constructor(
     private var expandDirection: ExpandDirection = layoutHelper.expandDirection
     private var duration: Long = layoutHelper.duration
     private var interpolator: TimeInterpolator = layoutHelper.interpolator
+    private var gravity: Int = layoutHelper.gravity
 
     private var lifecycleOwner: LifecycleOwner? = null
     private var expandTaskFlowJob: Job? = null
@@ -275,20 +287,40 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
+    private val displayRect = Rect()
+    private val outRect = Rect()
+
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         for (child in children) {
             var marginLeft = 0
             var marginTop = 0
+            var marginRight = 0
+            var marginBottom = 0
             val childLayoutParams = child.layoutParams
             if (childLayoutParams is MarginLayoutParams) {
                 marginLeft = childLayoutParams.leftMargin
                 marginTop = childLayoutParams.topMargin
+                marginRight = childLayoutParams.rightMargin
+                marginBottom = childLayoutParams.bottomMargin
             }
+            displayRect.set(
+                marginLeft + paddingLeft,
+                marginTop + paddingTop,
+                r - l - marginRight - paddingRight,
+                b - t - marginBottom - paddingBottom
+            )
+            layoutHelper.applyGravity(
+                gravity,
+                displayRect,
+                outRect,
+                child.measuredWidth,
+                child.measuredHeight
+            )
             child.layout(
-                paddingLeft + marginLeft,
-                paddingTop + marginTop,
-                child.measuredWidth + paddingLeft + marginLeft,
-                child.measuredHeight + paddingTop + marginTop
+                outRect.left,
+                outRect.top,
+                outRect.right,
+                outRect.bottom
             )
         }
     }
@@ -307,6 +339,12 @@ class ExpandableLayout @JvmOverloads constructor(
     @Suppress("unused")
     fun setInterpolator(interpolator: TimeInterpolator) {
         this.interpolator = interpolator
+    }
+
+    @Suppress("unused")
+    fun setGravity(gravity: Int) {
+        this.gravity = gravity
+        requestLayout()
     }
 
     @Suppress("unused")
