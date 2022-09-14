@@ -325,40 +325,33 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    @Suppress("unused")
     fun setExpandDirection(direction: ExpandDirection) {
         this.expandDirection = direction
         requestLayout()
     }
 
-    @Suppress("unused")
     fun setDuration(duration: Long) {
         this.duration = duration
     }
 
-    @Suppress("unused")
     fun setInterpolator(interpolator: TimeInterpolator) {
         this.interpolator = interpolator
     }
 
-    @Suppress("unused")
     fun setGravity(gravity: Int) {
         this.gravity = gravity
         requestLayout()
     }
 
-    @Suppress("unused")
     fun addStateChangeListener(listener: OnStateChangeListener) {
         stateChangeListeners.add(listener)
         listener.onStateChanged(this, expanded)
     }
 
-    @Suppress("unused")
     fun removeStateChangeListener(listener: OnStateChangeListener) {
         stateChangeListeners.remove(listener)
     }
 
-    @Suppress("MemberVisibilityCanBePrivate")
     fun setExpanded(expand: Boolean, animate: Boolean = true) {
         lifecycleOwner?.let { owner ->
             owner.lifecycleScope.launch {
@@ -369,7 +362,6 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    @Suppress("unused")
     fun toggleExpanded(animate: Boolean = true) {
         setExpanded(!expanded, animate)
     }
