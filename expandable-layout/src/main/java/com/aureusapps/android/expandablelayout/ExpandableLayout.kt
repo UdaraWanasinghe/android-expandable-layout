@@ -5,12 +5,9 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.view.ViewGroup
 import androidx.core.view.children
 import androidx.core.view.doOnLayout
-import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.aureusapps.android.extensions.setHeight
 import com.aureusapps.android.extensions.setWidth
@@ -29,7 +26,7 @@ class ExpandableLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
-) : ViewGroup(context, attrs, defStyleAttr, defStyleRes), DefaultLifecycleObserver {
+) : LifecycleAwareViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     companion object {
         internal const val LEFT = 0x01
@@ -90,35 +87,20 @@ class ExpandableLayout @JvmOverloads constructor(
     var animationInterpolator: TimeInterpolator = layoutHelper.animationInterpolator
     var contentGravity: Int = layoutHelper.contentGravity
 
-    private var lifecycleOwner: LifecycleOwner? = null
     private var expandTaskFlowJob: Job? = null
     private val displayRect = Rect()
     private val childRect = Rect()
 
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        updateLifecycleOwner()
-    }
-
-    private fun updateLifecycleOwner() {
-        val newLifecycleOwner = findViewTreeLifecycleOwner()
-        if (lifecycleOwner != newLifecycleOwner) {
-            // cancel last job
-            if (expandTaskFlowJob?.isActive == true) {
-                expandTaskFlowJob?.cancel()
-            }
-            // remove last observer
-            lifecycleOwner?.lifecycle?.removeObserver(this)
-            // subscribe to the new lifecycle owner
-            newLifecycleOwner?.lifecycle?.addObserver(this)
-            lifecycleOwner = newLifecycleOwner
+    override fun onCreate(owner: LifecycleOwner) {
+        cancelExpandTaskFlowJob()
+        expandTaskFlowJob = owner.lifecycleScope.launch {
+            launchExpandTaskFlow()
         }
     }
 
-    override fun onCreate(owner: LifecycleOwner) {
-        expandTaskFlowJob = owner.lifecycleScope.launch {
-            launchExpandTaskFlow()
+    private fun cancelExpandTaskFlowJob() {
+        if (expandTaskFlowJob?.isActive == true) {
+            expandTaskFlowJob?.cancel()
         }
     }
 
@@ -361,10 +343,8 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     fun setExpanded(expand: Boolean, animate: Boolean = true) {
-        lifecycleOwner?.let { owner ->
-            owner.lifecycleScope.launch {
-                expandTaskChannel.send(ExpandTask(expand, animate))
-            }
+        lifecycleScope?.launch {
+            expandTaskChannel.send(ExpandTask(expand, animate))
         } ?: run {
             expanded = expand
         }
