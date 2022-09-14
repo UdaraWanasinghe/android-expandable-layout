@@ -22,18 +22,18 @@ internal class ExpandableLayoutHelper(
 ) {
 
     val expanded: Boolean
-    val duration: Long
+    val animationDuration: Long
     val expandDirection: ExpandableLayout.ExpandDirection
-    val interpolator: TimeInterpolator
-    val gravity: Int
+    val animationInterpolator: TimeInterpolator
+    val contentGravity: Int
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.ExpandableLayout, defStyleAttr, defStyleRes).apply {
             expanded = getBoolean(R.styleable.ExpandableLayout_expanded, false)
             expandDirection = getEnum(R.styleable.ExpandableLayout_expandDirection, ExpandableLayout.ExpandDirection.VERTICAL)
-            duration = getInteger(R.styleable.ExpandableLayout_duration, 300).toLong()
-            interpolator = getInterpolator(R.styleable.ExpandableLayout_interpolator)
-            gravity = getInt(R.styleable.ExpandableLayout_gravity, TOP or LEFT)
+            animationDuration = getInteger(R.styleable.ExpandableLayout_animationDuration, 300).toLong()
+            animationInterpolator = getInterpolator(R.styleable.ExpandableLayout_animationInterpolator)
+            contentGravity = getInt(R.styleable.ExpandableLayout_contentGravity, TOP or LEFT)
                 .let { GravityCompat.getAbsoluteGravity(it, LayoutDirection.LOCALE) }
             recycle()
         }
@@ -53,7 +53,13 @@ internal class ExpandableLayoutHelper(
         }
     }
 
-    fun applyGravity(gravity: Int, displayRect: Rect, outRect: Rect, width: Int, height: Int) {
+    fun applyGravity(
+        gravity: Int,
+        displayRect: Rect,
+        width: Int,
+        height: Int,
+        outRect: Rect
+    ) {
         val left = if (gravity and LEFT != 0) {
             displayRect.left
         } else if (gravity and RIGHT != 0) {

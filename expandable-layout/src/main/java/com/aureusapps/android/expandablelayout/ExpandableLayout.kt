@@ -79,14 +79,22 @@ class ExpandableLayout @JvmOverloads constructor(
     private val layoutHelper = ExpandableLayoutHelper(context, attrs, defStyleAttr, defStyleRes)
 
     // attributes
-    private var expanded: Boolean = layoutHelper.expanded
-    private var expandDirection: ExpandDirection = layoutHelper.expandDirection
-    private var duration: Long = layoutHelper.duration
-    private var interpolator: TimeInterpolator = layoutHelper.interpolator
-    private var gravity: Int = layoutHelper.gravity
+    var expanded: Boolean = layoutHelper.expanded
+        private set
+    var expandDirection: ExpandDirection = layoutHelper.expandDirection
+        set(value) {
+            field = value
+            requestLayout()
+        }
+    var animationDuration: Long = layoutHelper.animationDuration
+    var animationInterpolator: TimeInterpolator = layoutHelper.animationInterpolator
+    var contentGravity: Int = layoutHelper.contentGravity
 
     private var lifecycleOwner: LifecycleOwner? = null
     private var expandTaskFlowJob: Job? = null
+    private val displayRect = Rect()
+    private val childRect = Rect()
+
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -141,22 +149,22 @@ class ExpandableLayout @JvmOverloads constructor(
                         val maxHeight = getMaxHeight()
                         if (expand) {
                             val expandHeight = maxHeight - currentHeight
-                            val duration = duration * expandHeight / maxHeight
-                            animate(currentHeight, maxHeight, duration, interpolator) { setHeight(it) }
+                            val duration = animationDuration * expandHeight / maxHeight
+                            animate(currentHeight, maxHeight, duration, animationInterpolator) { setHeight(it) }
                         } else {
-                            val duration = duration * currentHeight / maxHeight
-                            animate(currentHeight, 0, duration, interpolator) { setHeight(it) }
+                            val duration = animationDuration * currentHeight / maxHeight
+                            animate(currentHeight, 0, duration, animationInterpolator) { setHeight(it) }
                         }
                     } else {
                         val currentWidth = width
                         val maxWidth = getMaxWidth()
                         if (expand) {
                             val expandWidth = maxWidth - currentWidth
-                            val duration = duration * expandWidth / maxWidth
-                            animate(currentWidth, maxWidth, duration, interpolator) { setWidth(it) }
+                            val duration = animationDuration * expandWidth / maxWidth
+                            animate(currentWidth, maxWidth, duration, animationInterpolator) { setWidth(it) }
                         } else {
-                            val duration = duration * currentWidth / maxWidth
-                            animate(currentWidth, 0, duration, interpolator) { setWidth(it) }
+                            val duration = animationDuration * currentWidth / maxWidth
+                            animate(currentWidth, 0, duration, animationInterpolator) { setWidth(it) }
                         }
                     }
                 } else {
@@ -297,9 +305,6 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    private val displayRect = Rect()
-    private val outRect = Rect()
-
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         for (child in children) {
             var marginLeft = 0
@@ -320,37 +325,28 @@ class ExpandableLayout @JvmOverloads constructor(
                 b - t - marginBottom - paddingBottom
             )
             layoutHelper.applyGravity(
-                gravity,
+                contentGravity,
                 displayRect,
-                outRect,
                 child.measuredWidth,
-                child.measuredHeight
+                child.measuredHeight,
+                childRect
             )
             child.layout(
-                outRect.left,
-                outRect.top,
-                outRect.right,
-                outRect.bottom
+                childRect.left,
+                childRect.top,
+                childRect.right,
+                childRect.bottom
             )
         }
     }
 
-    fun setExpandDirection(direction: ExpandDirection) {
-        this.expandDirection = direction
+    fun setContentGravity(gravity: Gravity) {
+        this.contentGravity = gravity.value
         requestLayout()
     }
 
-    fun setDuration(duration: Long) {
-        this.duration = duration
-    }
-
-    fun setInterpolator(interpolator: TimeInterpolator) {
-        this.interpolator = interpolator
-    }
-
-    fun setGravity(gravity: Gravity) {
-        this.gravity = gravity.value
-        requestLayout()
+    fun getContentGravity(): Gravity {
+        return Gravity.values().first { it.value == contentGravity }
     }
 
     fun addStateChangeListener(listener: OnStateChangeListener) {

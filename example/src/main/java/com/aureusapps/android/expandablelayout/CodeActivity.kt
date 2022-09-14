@@ -51,11 +51,11 @@ class CodeActivity : AppCompatActivity() {
                     .apply {
                         expandableLayout = this
                         layoutParams = it.generateLayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                        setExpandDirection(ExpandableLayout.ExpandDirection.VERTICAL)
+                        expandDirection = ExpandableLayout.ExpandDirection.VERTICAL
                         setExpanded(true)
-                        setInterpolator(DecelerateInterpolator())
-                        setDuration(2000)
-                        setGravity(ExpandableLayout.Gravity.CENTER)
+                        animationInterpolator = DecelerateInterpolator()
+                        animationDuration = 2000
+                        setContentGravity(ExpandableLayout.Gravity.CENTER)
                         addStateChangeListener(object : ExpandableLayout.OnStateChangeListener {
                             override fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
                                 materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)

@@ -51,17 +51,17 @@ direction.
 3. Wrap your views with the `ExpandableLayout`.
 
    ```xml
-     <com.aureusapps.android.expandablelayout.ExpandableLayout
+    <com.aureusapps.android.expandablelayout.ExpandableLayout
         android:id="@+id/expandable_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="8dp"
-        app:duration="2000"
+        app:animationDuration="2000"
         app:expandDirection="vertical"
         app:expanded="true"
-        app:gravity="center"
-        app:interpolator="decelerate">
+        app:contentGravity="center"
+        app:animationInterpolator="decelerate">
 
         <TextView
             style="@style/TextAppearance.MaterialComponents.Headline1"

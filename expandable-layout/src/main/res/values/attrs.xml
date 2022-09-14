@@ -2,12 +2,12 @@
 <resources>
     <declare-styleable name="ExpandableLayout">
         <attr name="expanded" format="boolean" />
-        <attr name="duration" format="integer" />
+        <attr name="animationDuration" format="integer" />
         <attr name="expandDirection" format="enum">
             <enum name="horizontal" value="0" />
             <enum name="vertical" value="1" />
         </attr>
-        <attr name="interpolator" format="enum">
+        <attr name="animationInterpolator" format="enum">
             <enum name="accelerate_decelerate" value="0" />
             <enum name="accelerate" value="1" />
             <enum name="anticipate" value="2" />
@@ -18,7 +18,7 @@
             <enum name="overshoot" value="7" />
             <enum name="linear" value="8" />
         </attr>
-        <attr name="gravity">
+        <attr name="contentGravity">
             <flag name="left" value="0x01" />
             <flag name="center_horizontal" value="0x02" />
             <flag name="right" value="0x04" />
