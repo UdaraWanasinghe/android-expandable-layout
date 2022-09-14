@@ -222,6 +222,8 @@ class ExpandableLayout @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         // measure children
+        maxWidth = -1
+        maxHeight = -1
         for (child in children) {
             var marginLeft = 0
             var marginTop = 0
