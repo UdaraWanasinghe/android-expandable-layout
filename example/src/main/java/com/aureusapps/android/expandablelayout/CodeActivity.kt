@@ -55,7 +55,7 @@ class CodeActivity : AppCompatActivity() {
                         setExpanded(true)
                         setInterpolator(DecelerateInterpolator())
                         setDuration(2000)
-                        setGravity(ExpandableLayout.CENTER)
+                        setGravity(ExpandableLayout.Gravity.CENTER)
                         addStateChangeListener(object : ExpandableLayout.OnStateChangeListener {
                             override fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
                                 materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)

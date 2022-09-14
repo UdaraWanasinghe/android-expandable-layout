@@ -32,13 +32,23 @@ class ExpandableLayout @JvmOverloads constructor(
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes), DefaultLifecycleObserver {
 
     companion object {
-        const val LEFT = 0x01
-        const val CENTER_HORIZONTAL = 0x02
-        const val RIGHT = 0x04
-        const val TOP = 0x10
-        const val CENTER_VERTICAL = 0x20
-        const val BOTTOM = 0x40
-        const val CENTER = 0x22
+        internal const val LEFT = 0x01
+        internal const val CENTER_HORIZONTAL = 0x02
+        internal const val RIGHT = 0x04
+        internal const val TOP = 0x10
+        internal const val CENTER_VERTICAL = 0x20
+        internal const val BOTTOM = 0x40
+        internal const val CENTER = 0x22
+    }
+
+    enum class Gravity(val value: Int) {
+        LEFT(ExpandableLayout.LEFT),
+        CENTER_HORIZONTAL(ExpandableLayout.CENTER_HORIZONTAL),
+        RIGHT(ExpandableLayout.RIGHT),
+        TOP(ExpandableLayout.TOP),
+        CENTER_VERTICAL(ExpandableLayout.CENTER_VERTICAL),
+        BOTTOM(ExpandableLayout.BOTTOM),
+        CENTER(ExpandableLayout.CENTER)
     }
 
     enum class ExpandDirection {
@@ -338,8 +348,8 @@ class ExpandableLayout @JvmOverloads constructor(
         this.interpolator = interpolator
     }
 
-    fun setGravity(gravity: Int) {
-        this.gravity = gravity
+    fun setGravity(gravity: Gravity) {
+        this.gravity = gravity.value
         requestLayout()
     }
 
