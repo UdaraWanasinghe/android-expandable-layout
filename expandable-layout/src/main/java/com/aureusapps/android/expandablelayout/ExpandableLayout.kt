@@ -404,6 +404,10 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
+    override fun generateDefaultLayoutParams(): LayoutParams {
+        return MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+    }
+
     fun setContentGravity(gravity: Gravity) {
         this.contentGravity = gravity.value
         requestLayout()
