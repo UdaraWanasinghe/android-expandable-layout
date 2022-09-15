@@ -3,9 +3,7 @@ package com.aureusapps.android.expandablelayout
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -21,7 +19,6 @@ import org.junit.runner.RunWith
 class ExpandableLayoutInstrumentedTest {
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
-    private lateinit var parentLayout: ViewGroup
     private lateinit var expandableLayout: ExpandableLayout
     private lateinit var wrappedLayout1: View
     private lateinit var wrappedLayout2: View
@@ -33,39 +30,68 @@ class ExpandableLayoutInstrumentedTest {
 
     @Test
     fun testOnMeasure() {
-        // parent layout is MATCH_PARENT, MATCH_PARENT
-        // expandable layout is WRAP_CONTENT, WRAP_CONTENT
-        // wrapped layout is 200, 200
-        parentLayout.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-        expandableLayout.layoutParams = parentLayout.generateLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+        testLayout(
+            expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 500, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+
+    }
+
+    private fun testLayout(
+        expandableWidth: Int,
+        expandableHeight: Int,
+        wrapped1Width: Int,
+        wrapped1Height: Int,
+        wrapped2Width: Int,
+        wrapped2Height: Int,
+        widthMeasureSpec: Int,
+        heightMeasureSpec: Int,
+        expectedExpandableWidth: Int,
+        expectedExpandableHeight: Int,
+        expectedWrapped1Width: Int,
+        expectedWrapped1Height: Int,
+        expectedWrapped2Width: Int,
+        expectedWrapped2Height: Int
+    ) {
+        expandableLayout.layoutParams = ViewGroup.LayoutParams(expandableWidth, expandableHeight)
         expandableLayout.setExpanded(true)
         expandableLayout.expandDirection = ExpandableLayout.ExpandDirection.HORIZONTAL
-        wrappedLayout1.layoutParams = expandableLayout.generateLayoutParams(200, 200)
-        wrappedLayout2.layoutParams = expandableLayout.generateLayoutParams(300, 300)
+        wrappedLayout1.layoutParams = expandableLayout.generateLayoutParams(wrapped1Width, wrapped1Height)
+        wrappedLayout2.layoutParams = expandableLayout.generateLayoutParams(wrapped2Width, wrapped2Height)
+        expandableLayout.measure(widthMeasureSpec, heightMeasureSpec)
 
-        parentLayout.measure(
-            View.MeasureSpec.makeMeasureSpec(500, View.MeasureSpec.AT_MOST),
-            View.MeasureSpec.makeMeasureSpec(500, View.MeasureSpec.AT_MOST)
-        )
-        Assert.assertEquals(300, expandableLayout.measuredWidth)
+        // expandable layout
+        Assert.assertEquals(expectedExpandableWidth, expandableLayout.measuredWidth)
+        Assert.assertEquals(expectedExpandableHeight, expandableLayout.measuredHeight)
+
+        // wrapped layout 1
+        Assert.assertEquals(expectedWrapped1Width, wrappedLayout1.measuredWidth)
+        Assert.assertEquals(expectedWrapped1Height, wrappedLayout1.measuredHeight)
+
+        // wrapped layout 2
+        Assert.assertEquals(expectedWrapped2Width, wrappedLayout2.measuredWidth)
+        Assert.assertEquals(expectedWrapped2Height, wrappedLayout2.measuredHeight)
     }
 
     private fun createContentView() {
-        parentLayout = LinearLayout(context)
+        ExpandableLayout(context).apply {
+            expandableLayout = this
+        }
             .addView {
-                ExpandableLayout(it.context).apply {
-                    expandableLayout = this
+                TextView(it.context).apply {
+                    wrappedLayout1 = this
                 }
-                    .addView {
-                        TextView(it.context).apply {
-                            wrappedLayout1 = this
-                        }
-                    }
-                    .addView {
-                        TextView(it.context).apply {
-                            wrappedLayout2 = this
-                        }
-                    }
+            }
+            .addView {
+                TextView(it.context).apply {
+                    wrappedLayout2 = this
+                }
             }
     }
 
