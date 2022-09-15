@@ -3,6 +3,7 @@ package com.aureusapps.android.expandablelayout
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.TextView
 import androidx.test.core.app.ApplicationProvider
@@ -40,6 +41,16 @@ class ExpandableLayoutInstrumentedTest {
             expectedWrapped1Width = 200, expectedWrapped1Height = 200,
             expectedWrapped2Width = 500, expectedWrapped2Height = 500
         )
+        testLayout(
+            expandableWidth = MATCH_PARENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 1000, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
 
     }
 
@@ -57,11 +68,12 @@ class ExpandableLayoutInstrumentedTest {
         expectedWrapped1Width: Int,
         expectedWrapped1Height: Int,
         expectedWrapped2Width: Int,
-        expectedWrapped2Height: Int
+        expectedWrapped2Height: Int,
+        expandDirection: ExpandableLayout.ExpandDirection = ExpandableLayout.ExpandDirection.HORIZONTAL
     ) {
         expandableLayout.layoutParams = ViewGroup.LayoutParams(expandableWidth, expandableHeight)
         expandableLayout.setExpanded(true)
-        expandableLayout.expandDirection = ExpandableLayout.ExpandDirection.HORIZONTAL
+        expandableLayout.expandDirection = expandDirection
         wrappedLayout1.layoutParams = expandableLayout.generateLayoutParams(wrapped1Width, wrapped1Height)
         wrappedLayout2.layoutParams = expandableLayout.generateLayoutParams(wrapped2Width, wrapped2Height)
         expandableLayout.measure(widthMeasureSpec, heightMeasureSpec)
