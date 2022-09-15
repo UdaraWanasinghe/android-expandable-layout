@@ -22,7 +22,7 @@
         android:layout_gravity="center"
         android:layout_margin="8dp"
         app:animationDuration="2000"
-        app:expandDirection="vertical"
+        app:expandDirection="horizontal"
         app:expanded="true"
         app:contentGravity="center"
         app:animationInterpolator="decelerate">

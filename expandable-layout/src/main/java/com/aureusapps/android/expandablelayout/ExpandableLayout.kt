@@ -5,6 +5,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.view.children
 import androidx.core.view.doOnLayout
@@ -69,30 +70,30 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    private var maxWidth: Int = -1
-    private var maxHeight: Int = -1
-    private var maxParentWidth: Int = -1
-    private var maxParentHeight: Int = -1
-    private val stateChangeListeners: ArrayList<OnStateChangeListener> = ArrayList()
+    private var maxWidth = 0
+    private var maxHeight = 0
+    private val stateChangeListeners = ArrayList<OnStateChangeListener>()
     private val expandTaskChannel = Channel<ExpandTask>()
 
     private val layoutHelper = ExpandableLayoutHelper(context, attrs, defStyleAttr, defStyleRes)
 
     // attributes
-    var expanded: Boolean = layoutHelper.expanded
+    var expanded = layoutHelper.expanded
         private set
-    var expandDirection: ExpandDirection = layoutHelper.expandDirection
+    var expandDirection = layoutHelper.expandDirection
         set(value) {
             field = value
             requestLayout()
         }
-    var animationDuration: Long = layoutHelper.animationDuration
-    var animationInterpolator: TimeInterpolator = layoutHelper.animationInterpolator
-    var contentGravity: Int = layoutHelper.contentGravity
+    var animationDuration = layoutHelper.animationDuration
+    var animationInterpolator = layoutHelper.animationInterpolator
+    var contentGravity = layoutHelper.contentGravity
 
     private var expandTaskFlowJob: Job? = null
     private val displayRect = Rect()
     private val childRect = Rect()
+    private var maxContentWidth = 0
+    private var maxContentHeight = 0
 
     override fun onCreate(owner: LifecycleOwner) {
         cancelExpandTaskFlowJob()
@@ -165,7 +166,7 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private suspend fun getMaxWidth(): Int {
-        if (maxWidth > -1) return maxWidth
+        if (maxWidth > 0) return maxWidth
         return suspendCoroutine { continuation ->
             doOnLayout {
                 continuation.resume(maxWidth)
@@ -174,7 +175,7 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private suspend fun getMaxHeight(): Int {
-        if (maxHeight > -1) return maxHeight
+        if (maxHeight > 0) return maxHeight
         return suspendCoroutine { continuation ->
             doOnLayout {
                 continuation.resume(maxHeight)
@@ -206,15 +207,6 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val parentWidthMode = MeasureSpec.getMode(widthMeasureSpec)
-        val parentHeightMode = MeasureSpec.getMode(heightMeasureSpec)
-        if (parentWidthMode == MeasureSpec.AT_MOST) {
-            maxParentWidth = MeasureSpec.getSize(widthMeasureSpec)
-        }
-        if (parentHeightMode == MeasureSpec.AT_MOST) {
-            maxParentHeight = MeasureSpec.getSize(heightMeasureSpec)
-        }
-
         // measure children
         maxWidth = -1
         maxHeight = -1
@@ -233,6 +225,7 @@ class ExpandableLayout @JvmOverloads constructor(
             if (child.visibility != GONE) {
                 val childWidthSpec = when (expandDirection) {
                     ExpandDirection.HORIZONTAL -> {
+                        val maxParentWidth = getMaxParentWidth(widthMeasureSpec)
                         if (maxParentWidth < 0) {
                             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                         } else {
@@ -259,6 +252,7 @@ class ExpandableLayout @JvmOverloads constructor(
                         )
                     }
                     ExpandDirection.VERTICAL -> {
+                        val maxParentHeight = getMaxContentHeight(heightMeasureSpec)
                         if (maxParentHeight < 0) {
                             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                         } else {
@@ -277,6 +271,7 @@ class ExpandableLayout @JvmOverloads constructor(
         // measure parent
         when (expandDirection) {
             ExpandDirection.VERTICAL -> {
+                val parentWidthMode = MeasureSpec.getMode(widthMeasureSpec)
                 val exactWidth = if (parentWidthMode == MeasureSpec.AT_MOST) {
                     maxWidth
                 } else {
@@ -291,6 +286,7 @@ class ExpandableLayout @JvmOverloads constructor(
                 setMeasuredDimension(exactWidth, exactHeight)
             }
             ExpandDirection.HORIZONTAL -> {
+                val parentHeightMode = MeasureSpec.getMode(heightMeasureSpec)
                 val exactHeight = if (parentHeightMode == MeasureSpec.AT_MOST) {
                     maxHeight
                 } else {
@@ -304,6 +300,60 @@ class ExpandableLayout @JvmOverloads constructor(
                 }
                 setMeasuredDimension(exactWidth, exactHeight)
             }
+        }
+    }
+
+    private fun getMaxParentWidth(widthMeasureSpec: Int): Int {
+        val parentWidthMode = MeasureSpec.getMode(widthMeasureSpec)
+        return if (parentWidthMode == MeasureSpec.AT_MOST) {
+            MeasureSpec.getSize(widthMeasureSpec).also { maxContentWidth = it }
+        } else {
+            val parent = parent
+            if (parent is ViewGroup) {
+                if (parent.layoutParams.width == WRAP_CONTENT) {
+                    maxContentWidth
+                } else {
+                    parent.measuredWidth - getHorizontalMargins()
+                }
+            } else {
+                0
+            }
+        }
+    }
+
+    private fun getMaxContentHeight(heightMeasureSpec: Int): Int {
+        val parentHeightMode = MeasureSpec.getMode(heightMeasureSpec)
+        return if (parentHeightMode == MeasureSpec.AT_MOST) {
+            MeasureSpec.getSize(heightMeasureSpec).also { maxContentHeight = it }
+        } else {
+            val parent = parent
+            if (parent is ViewGroup) {
+                if (parent.layoutParams.height == WRAP_CONTENT) {
+                    maxContentHeight
+                } else {
+                    parent.measuredHeight - getVerticalMargins()
+                }
+            } else {
+                0
+            }
+        }
+    }
+
+    private fun getHorizontalMargins(): Int {
+        val layoutParams = layoutParams
+        return if (layoutParams is MarginLayoutParams) {
+            layoutParams.leftMargin + layoutParams.rightMargin
+        } else {
+            0
+        }
+    }
+
+    private fun getVerticalMargins(): Int {
+        val layoutParams = layoutParams
+        return if (layoutParams is MarginLayoutParams) {
+            layoutParams.topMargin + layoutParams.bottomMargin
+        } else {
+            0
         }
     }
 
