@@ -354,7 +354,7 @@ class ExpandableLayout @JvmOverloads constructor(
                         MeasureSpec.getSize(measureSpec)
                     }
                     WRAP_CONTENT -> {
-                        maxSize
+                        min(maxSize, MeasureSpec.getSize(measureSpec))
                     }
                     else -> {
                         min(layoutParam, MeasureSpec.getSize(measureSpec))

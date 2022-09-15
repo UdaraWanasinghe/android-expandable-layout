@@ -31,6 +31,7 @@ class ExpandableLayoutInstrumentedTest {
 
     @Test
     fun testOnMeasure() {
+        // change expandable layout width
         testLayout(
             expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
             wrapped1Width = 200, wrapped1Height = 200,
@@ -61,13 +62,147 @@ class ExpandableLayoutInstrumentedTest {
             expectedWrapped1Width = 200, expectedWrapped1Height = 200,
             expectedWrapped2Width = 500, expectedWrapped2Height = 500
         )
+
+        // change width measure spec
         testLayout(
-            expandableWidth = 200, expandableHeight = WRAP_CONTENT,
+            expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
             wrapped1Width = 200, wrapped1Height = 200,
             wrapped2Width = 500, wrapped2Height = 500,
             widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.AT_MOST),
             heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
             expectedExpandableWidth = 100, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 200, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.UNSPECIFIED),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 500, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+
+        // differential expandable layout width and width measure spec
+        testLayout(
+            expandableWidth = MATCH_PARENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 1000, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = MATCH_PARENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 100, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 100, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = 200, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 100, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = 200, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 100, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = 200, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.UNSPECIFIED),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 200, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = 800, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 800, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 500, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = MATCH_PARENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 500, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = MATCH_PARENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(2000, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 2000, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = WRAP_CONTENT, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(2000, View.MeasureSpec.EXACTLY),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 2000, expectedExpandableHeight = 500,
             expectedWrapped1Width = 200, expectedWrapped1Height = 200,
             expectedWrapped2Width = 500, expectedWrapped2Height = 500
         )
