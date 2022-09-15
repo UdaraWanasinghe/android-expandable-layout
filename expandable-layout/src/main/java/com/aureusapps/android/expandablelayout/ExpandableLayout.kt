@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.view.children
 import androidx.core.view.doOnLayout
@@ -225,7 +226,7 @@ class ExpandableLayout @JvmOverloads constructor(
             if (child.visibility != GONE) {
                 val childWidthSpec = when (expandDirection) {
                     ExpandDirection.HORIZONTAL -> {
-                        val maxParentWidth = getMaxParentWidth(widthMeasureSpec)
+                        val maxParentWidth = getMaxContentWidth(widthMeasureSpec)
                         if (maxParentWidth < 0) {
                             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                         } else {
@@ -271,41 +272,12 @@ class ExpandableLayout @JvmOverloads constructor(
             }
         }
         // measure parent
-        when (expandDirection) {
-            ExpandDirection.VERTICAL -> {
-                val parentWidthMode = MeasureSpec.getMode(widthMeasureSpec)
-                val exactWidth = if (parentWidthMode == MeasureSpec.AT_MOST) {
-                    maxWidth
-                } else {
-                    MeasureSpec.getSize(widthMeasureSpec)
-                }
-                val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-                val exactHeight = if (heightMode == MeasureSpec.EXACTLY) {
-                    MeasureSpec.getSize(heightMeasureSpec)
-                } else {
-                    if (expanded) maxHeight else 0
-                }
-                setMeasuredDimension(exactWidth, exactHeight)
-            }
-            ExpandDirection.HORIZONTAL -> {
-                val parentHeightMode = MeasureSpec.getMode(heightMeasureSpec)
-                val exactHeight = if (parentHeightMode == MeasureSpec.AT_MOST) {
-                    maxHeight
-                } else {
-                    MeasureSpec.getSize(heightMeasureSpec)
-                }
-                val widthMode = MeasureSpec.getMode(widthMeasureSpec)
-                val exactWidth = if (widthMode == MeasureSpec.EXACTLY) {
-                    MeasureSpec.getSize(widthMeasureSpec)
-                } else {
-                    if (expanded) maxWidth else 0
-                }
-                setMeasuredDimension(exactWidth, exactHeight)
-            }
-        }
+        val exactHeight = getLayoutExactDimension(heightMeasureSpec, layoutParams.height, maxContentHeight, maxHeight)
+        val exactWidth = getLayoutExactDimension(widthMeasureSpec, layoutParams.width, maxContentWidth, maxWidth)
+        setMeasuredDimension(exactWidth, exactHeight)
     }
 
-    private fun getMaxParentWidth(widthMeasureSpec: Int): Int {
+    private fun getMaxContentWidth(widthMeasureSpec: Int): Int {
         val parentWidthMode = MeasureSpec.getMode(widthMeasureSpec)
         return if (parentWidthMode == MeasureSpec.AT_MOST) {
             MeasureSpec.getSize(widthMeasureSpec).also { maxContentWidth = it }
@@ -366,6 +338,39 @@ class ExpandableLayout @JvmOverloads constructor(
             MeasureSpec.makeMeasureSpec(maxContentWidth - padding, MeasureSpec.AT_MOST)
         } else {
             MeasureSpec.makeMeasureSpec(maxContentWidth - padding, MeasureSpec.EXACTLY)
+        }
+    }
+
+    private fun getLayoutExactDimension(
+        measureSpec: Int,
+        layoutParam: Int,
+        maxContentSize: Int,
+        maxSize: Int
+    ): Int {
+        return when (MeasureSpec.getMode(measureSpec)) {
+            MeasureSpec.AT_MOST -> {
+                when (layoutParam) {
+                    MATCH_PARENT -> {
+                        maxContentSize
+                    }
+                    WRAP_CONTENT -> {
+                        maxSize
+                    }
+                    else -> {
+                        layoutParam
+                    }
+                }
+            }
+            MeasureSpec.EXACTLY -> {
+                MeasureSpec.getSize(measureSpec)
+            }
+            else -> {
+                if (layoutParam > 0) {
+                    layoutParam
+                } else {
+                    maxSize
+                }
+            }
         }
     }
 
