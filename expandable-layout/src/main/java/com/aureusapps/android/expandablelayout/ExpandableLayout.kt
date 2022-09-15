@@ -5,6 +5,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.view.children
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.LifecycleOwner
@@ -133,6 +134,7 @@ class ExpandableLayout @JvmOverloads constructor(
                             val expandHeight = maxHeight - currentHeight
                             val duration = animationDuration * expandHeight / maxHeight
                             animate(currentHeight, maxHeight, duration, animationInterpolator) { setHeight(it) }
+                            setHeight(WRAP_CONTENT)
                         } else {
                             val duration = animationDuration * currentHeight / maxHeight
                             animate(currentHeight, 0, duration, animationInterpolator) { setHeight(it) }
@@ -144,6 +146,7 @@ class ExpandableLayout @JvmOverloads constructor(
                             val expandWidth = maxWidth - currentWidth
                             val duration = animationDuration * expandWidth / maxWidth
                             animate(currentWidth, maxWidth, duration, animationInterpolator) { setWidth(it) }
+                            setWidth(WRAP_CONTENT)
                         } else {
                             val duration = animationDuration * currentWidth / maxWidth
                             animate(currentWidth, 0, duration, animationInterpolator) { setWidth(it) }
@@ -151,11 +154,9 @@ class ExpandableLayout @JvmOverloads constructor(
                     }
                 } else {
                     if (expandDirection == ExpandDirection.VERTICAL) {
-                        val maxHeight = getMaxHeight()
-                        setHeight(if (expand) maxHeight else 0)
+                        setHeight(if (expand) WRAP_CONTENT else 0)
                     } else {
-                        val maxWidth = getMaxWidth()
-                        setWidth(if (expand) maxWidth else 0)
+                        setWidth(if (expand) WRAP_CONTENT else 0)
                     }
                 }
             }
