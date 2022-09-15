@@ -229,9 +229,10 @@ class ExpandableLayout @JvmOverloads constructor(
                         if (maxParentWidth < 0) {
                             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                         } else {
-                            MeasureSpec.makeMeasureSpec(
-                                maxParentWidth - paddingLeft - paddingRight - marginLeft - marginRight,
-                                MeasureSpec.AT_MOST
+                            getChildMeasureSpecForExpandableLayout(
+                                maxParentWidth,
+                                paddingLeft + paddingRight + marginLeft + marginRight,
+                                child.layoutParams.width
                             )
                         }
                     }
@@ -256,9 +257,10 @@ class ExpandableLayout @JvmOverloads constructor(
                         if (maxParentHeight < 0) {
                             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                         } else {
-                            MeasureSpec.makeMeasureSpec(
-                                maxParentHeight - paddingTop - paddingBottom - marginTop - marginBottom,
-                                MeasureSpec.AT_MOST
+                            getChildMeasureSpecForExpandableLayout(
+                                maxContentHeight,
+                                paddingTop + paddingBottom + marginTop + marginBottom,
+                                child.layoutParams.height
                             )
                         }
                     }
@@ -354,6 +356,16 @@ class ExpandableLayout @JvmOverloads constructor(
             layoutParams.topMargin + layoutParams.bottomMargin
         } else {
             0
+        }
+    }
+
+    private fun getChildMeasureSpecForExpandableLayout(maxContentWidth: Int, padding: Int, childDimension: Int): Int {
+        return if (childDimension > 0) {
+            MeasureSpec.makeMeasureSpec(childDimension, MeasureSpec.EXACTLY)
+        } else if (childDimension == WRAP_CONTENT) {
+            MeasureSpec.makeMeasureSpec(maxContentWidth - padding, MeasureSpec.AT_MOST)
+        } else {
+            MeasureSpec.makeMeasureSpec(maxContentWidth - padding, MeasureSpec.EXACTLY)
         }
     }
 
