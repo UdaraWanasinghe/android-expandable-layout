@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
+import kotlin.math.min
 
 class ExpandableLayout @JvmOverloads constructor(
     context: Context,
@@ -272,8 +273,8 @@ class ExpandableLayout @JvmOverloads constructor(
             }
         }
         // measure parent
-        val exactHeight = getLayoutExactDimension(heightMeasureSpec, layoutParams.height, maxContentHeight, maxHeight)
-        val exactWidth = getLayoutExactDimension(widthMeasureSpec, layoutParams.width, maxContentWidth, maxWidth)
+        val exactHeight = getLayoutExactDimension(heightMeasureSpec, layoutParams.height, maxHeight)
+        val exactWidth = getLayoutExactDimension(widthMeasureSpec, layoutParams.width, maxWidth)
         setMeasuredDimension(exactWidth, exactHeight)
     }
 
@@ -344,32 +345,34 @@ class ExpandableLayout @JvmOverloads constructor(
     private fun getLayoutExactDimension(
         measureSpec: Int,
         layoutParam: Int,
-        maxContentSize: Int,
         maxSize: Int
     ): Int {
         return when (MeasureSpec.getMode(measureSpec)) {
             MeasureSpec.AT_MOST -> {
                 when (layoutParam) {
                     MATCH_PARENT -> {
-                        maxContentSize
+                        MeasureSpec.getSize(measureSpec)
                     }
                     WRAP_CONTENT -> {
                         maxSize
                     }
                     else -> {
-                        layoutParam
+                        min(layoutParam, MeasureSpec.getSize(measureSpec))
                     }
                 }
             }
             MeasureSpec.EXACTLY -> {
                 MeasureSpec.getSize(measureSpec)
             }
-            else -> {
+            MeasureSpec.UNSPECIFIED -> {
                 if (layoutParam > 0) {
                     layoutParam
                 } else {
                     maxSize
                 }
+            }
+            else -> {
+                throw Exception("Unknown MeasureSpec mode")
             }
         }
     }

@@ -51,7 +51,26 @@ class ExpandableLayoutInstrumentedTest {
             expectedWrapped1Width = 200, expectedWrapped1Height = 200,
             expectedWrapped2Width = 500, expectedWrapped2Height = 500
         )
-
+        testLayout(
+            expandableWidth = 100, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 100, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
+        testLayout(
+            expandableWidth = 200, expandableHeight = WRAP_CONTENT,
+            wrapped1Width = 200, wrapped1Height = 200,
+            wrapped2Width = 500, wrapped2Height = 500,
+            widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.AT_MOST),
+            heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
+            expectedExpandableWidth = 100, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 200, expectedWrapped1Height = 200,
+            expectedWrapped2Width = 500, expectedWrapped2Height = 500
+        )
     }
 
     private fun testLayout(
