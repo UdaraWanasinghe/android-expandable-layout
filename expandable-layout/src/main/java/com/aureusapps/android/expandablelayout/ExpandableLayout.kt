@@ -280,7 +280,7 @@ class ExpandableLayout @JvmOverloads constructor(
 
     private fun getMaxContentWidth(widthMeasureSpec: Int): Int {
         val parentWidthMode = MeasureSpec.getMode(widthMeasureSpec)
-        return if (parentWidthMode == MeasureSpec.AT_MOST) {
+        return if (parentWidthMode == MeasureSpec.AT_MOST || parentWidthMode == MeasureSpec.EXACTLY) {
             MeasureSpec.getSize(widthMeasureSpec).also { maxContentWidth = it }
         } else {
             val parent = parent
@@ -298,7 +298,7 @@ class ExpandableLayout @JvmOverloads constructor(
 
     private fun getMaxContentHeight(heightMeasureSpec: Int): Int {
         val parentHeightMode = MeasureSpec.getMode(heightMeasureSpec)
-        return if (parentHeightMode == MeasureSpec.AT_MOST) {
+        return if (parentHeightMode == MeasureSpec.AT_MOST || parentHeightMode == MeasureSpec.EXACTLY) {
             MeasureSpec.getSize(heightMeasureSpec).also { maxContentHeight = it }
         } else {
             val parent = parent
