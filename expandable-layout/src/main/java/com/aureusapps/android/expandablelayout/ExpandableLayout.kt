@@ -71,6 +71,8 @@ class ExpandableLayout @JvmOverloads constructor(
 
     private var maxWidth: Int = -1
     private var maxHeight: Int = -1
+    private var maxParentWidth: Int = -1
+    private var maxParentHeight: Int = -1
     private val stateChangeListeners: ArrayList<OnStateChangeListener> = ArrayList()
     private val expandTaskChannel = Channel<ExpandTask>()
 
@@ -204,6 +206,15 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val parentWidthMode = MeasureSpec.getMode(widthMeasureSpec)
+        val parentHeightMode = MeasureSpec.getMode(heightMeasureSpec)
+        if (parentWidthMode == MeasureSpec.AT_MOST) {
+            maxParentWidth = MeasureSpec.getSize(widthMeasureSpec)
+        }
+        if (parentHeightMode == MeasureSpec.AT_MOST) {
+            maxParentHeight = MeasureSpec.getSize(heightMeasureSpec)
+        }
+
         // measure children
         maxWidth = -1
         maxHeight = -1
@@ -222,10 +233,14 @@ class ExpandableLayout @JvmOverloads constructor(
             if (child.visibility != GONE) {
                 val childWidthSpec = when (expandDirection) {
                     ExpandDirection.HORIZONTAL -> {
-                        MeasureSpec.makeMeasureSpec(
-                            0,
-                            MeasureSpec.UNSPECIFIED
-                        )
+                        if (maxParentWidth < 0) {
+                            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+                        } else {
+                            MeasureSpec.makeMeasureSpec(
+                                maxParentWidth - paddingLeft - paddingRight - marginLeft - marginRight,
+                                MeasureSpec.AT_MOST
+                            )
+                        }
                     }
                     ExpandDirection.VERTICAL -> {
                         getChildMeasureSpec(
@@ -244,10 +259,14 @@ class ExpandableLayout @JvmOverloads constructor(
                         )
                     }
                     ExpandDirection.VERTICAL -> {
-                        MeasureSpec.makeMeasureSpec(
-                            0,
-                            MeasureSpec.UNSPECIFIED
-                        )
+                        if (maxParentHeight < 0) {
+                            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+                        } else {
+                            MeasureSpec.makeMeasureSpec(
+                                maxParentHeight - paddingTop - paddingBottom - marginTop - marginBottom,
+                                MeasureSpec.AT_MOST
+                            )
+                        }
                     }
                 }
                 child.measure(childWidthSpec, childHeightSpec)
@@ -258,8 +277,7 @@ class ExpandableLayout @JvmOverloads constructor(
         // measure parent
         when (expandDirection) {
             ExpandDirection.VERTICAL -> {
-                val widthMode = MeasureSpec.getMode(widthMeasureSpec)
-                val exactWidth = if (widthMode == MeasureSpec.AT_MOST) {
+                val exactWidth = if (parentWidthMode == MeasureSpec.AT_MOST) {
                     maxWidth
                 } else {
                     MeasureSpec.getSize(widthMeasureSpec)
@@ -273,8 +291,7 @@ class ExpandableLayout @JvmOverloads constructor(
                 setMeasuredDimension(exactWidth, exactHeight)
             }
             ExpandDirection.HORIZONTAL -> {
-                val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-                val exactHeight = if (heightMode == MeasureSpec.AT_MOST) {
+                val exactHeight = if (parentHeightMode == MeasureSpec.AT_MOST) {
                     maxHeight
                 } else {
                     MeasureSpec.getSize(heightMeasureSpec)
