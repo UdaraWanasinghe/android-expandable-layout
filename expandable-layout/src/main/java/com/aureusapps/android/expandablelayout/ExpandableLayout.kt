@@ -96,6 +96,7 @@ class ExpandableLayout @JvmOverloads constructor(
     private val childRect = Rect()
     private var maxContentWidth = 0
     private var maxContentHeight = 0
+    private var isAnimating: Boolean = false
 
     override fun onCreate(owner: LifecycleOwner) {
         cancelExpandTaskFlowJob()
@@ -201,10 +202,13 @@ class ExpandableLayout @JvmOverloads constructor(
                 }
             }
         try {
+            isAnimating = true
             animator.start()
             delay(duration)
         } catch (e: CancellationException) {
             animator.cancel()
+        } finally {
+            isAnimating = false
         }
     }
 
@@ -292,6 +296,36 @@ class ExpandableLayout @JvmOverloads constructor(
                 }
             } else {
                 0
+            }
+        }
+    }
+
+    private fun getMaxContentSize(
+        measureSpec: Int,
+        maxChildSizePlusPadding: Int,
+        maxParentSizeMinusPadding: Int,
+        layoutParam: Int
+    ): Int {
+        return when (MeasureSpec.getMode(measureSpec)) {
+            MeasureSpec.AT_MOST,
+            MeasureSpec.EXACTLY -> {
+                MeasureSpec.getSize(measureSpec)
+            }
+            MeasureSpec.UNSPECIFIED -> {
+                when (layoutParam) {
+                    WRAP_CONTENT -> {
+                        maxChildSizePlusPadding
+                    }
+                    MATCH_PARENT -> {
+                        MeasureSpec.getSize(measureSpec)
+                    }
+                    else -> {
+                        maxParentSizeMinusPadding
+                    }
+                }
+            }
+            else -> {
+                throw IllegalStateException("Unknown MeasureSpec mode: ${MeasureSpec.getMode(measureSpec)}")
             }
         }
     }
