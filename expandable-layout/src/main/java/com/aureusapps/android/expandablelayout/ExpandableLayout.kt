@@ -300,6 +300,22 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
+    private fun getMaxChildSize(): Pair<Int, Int> {
+        var maxWidth = 0
+        var maxHeight = 0
+        for (child in children) {
+            if (child.visibility != GONE) {
+                child.measure(
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+                )
+                maxWidth = max(maxWidth, child.measuredWidth)
+                maxHeight = max(maxHeight, child.measuredHeight)
+            }
+        }
+        return maxWidth to maxHeight
+    }
+
     private fun getMaxContentSize(
         measureSpec: Int,
         layoutParam: Int,
