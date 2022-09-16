@@ -224,8 +224,8 @@ class ExpandableLayoutInstrumentedTest {
             wrapped2Width = 500, wrapped2Height = 500,
             widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
             heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
-            expectedExpandableWidth = 1000, expectedExpandableHeight = 500,
-            expectedWrapped1Width = 1000, expectedWrapped1Height = 200,
+            expectedExpandableWidth = 500, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 0, expectedWrapped1Height = 200,
             expectedWrapped2Width = 500, expectedWrapped2Height = 500
         )
         testLayout(
@@ -235,7 +235,7 @@ class ExpandableLayoutInstrumentedTest {
             widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(100, View.MeasureSpec.AT_MOST),
             heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
             expectedExpandableWidth = 100, expectedExpandableHeight = 500,
-            expectedWrapped1Width = 100, expectedWrapped1Height = 200,
+            expectedWrapped1Width = 0, expectedWrapped1Height = 200,
             expectedWrapped2Width = 500, expectedWrapped2Height = 500
         )
         testLayout(
@@ -264,8 +264,8 @@ class ExpandableLayoutInstrumentedTest {
             wrapped2Width = 500, wrapped2Height = 500,
             widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.UNSPECIFIED),
             heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.AT_MOST),
-            expectedExpandableWidth = 1000, expectedExpandableHeight = 500,
-            expectedWrapped1Width = 1000, expectedWrapped1Height = 200,
+            expectedExpandableWidth = 500, expectedExpandableHeight = 500,
+            expectedWrapped1Width = 0, expectedWrapped1Height = 200,
             expectedWrapped2Width = 500, expectedWrapped2Height = 500
         )
     }
