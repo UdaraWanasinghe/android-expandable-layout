@@ -95,7 +95,6 @@ class ExpandableLayout @JvmOverloads constructor(
     private val childRect = Rect()
     private var maxContentWidth = 0
     private var maxContentHeight = 0
-    private var isAnimating: Boolean = false
 
     override fun onCreate(owner: LifecycleOwner) {
         cancelExpandTaskFlowJob()
@@ -201,13 +200,10 @@ class ExpandableLayout @JvmOverloads constructor(
                 }
             }
         try {
-            isAnimating = true
             animator.start()
             delay(duration)
         } catch (e: CancellationException) {
             animator.cancel()
-        } finally {
-            isAnimating = false
         }
     }
 
