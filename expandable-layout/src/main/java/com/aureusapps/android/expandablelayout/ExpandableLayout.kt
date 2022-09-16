@@ -235,7 +235,7 @@ class ExpandableLayout @JvmOverloads constructor(
                         if (maxParentWidth < 0) {
                             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                         } else {
-                            getChildMeasureSpecForExpandableLayout(
+                            getChildMeasureSpecForCurrentExpandDirection(
                                 maxParentWidth,
                                 paddingLeft + paddingRight + marginLeft + marginRight,
                                 child.layoutParams.width
@@ -263,7 +263,7 @@ class ExpandableLayout @JvmOverloads constructor(
                         if (maxParentHeight < 0) {
                             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                         } else {
-                            getChildMeasureSpecForExpandableLayout(
+                            getChildMeasureSpecForCurrentExpandDirection(
                                 maxContentHeight,
                                 paddingTop + paddingBottom + marginTop + marginBottom,
                                 child.layoutParams.height
@@ -366,13 +366,21 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     }
 
-    private fun getChildMeasureSpecForExpandableLayout(maxContentWidth: Int, padding: Int, childDimension: Int): Int {
-        return if (childDimension > 0) {
-            MeasureSpec.makeMeasureSpec(childDimension, MeasureSpec.EXACTLY)
-        } else if (childDimension == WRAP_CONTENT) {
-            MeasureSpec.makeMeasureSpec(maxContentWidth - padding, MeasureSpec.AT_MOST)
-        } else {
-            MeasureSpec.makeMeasureSpec(maxContentWidth - padding, MeasureSpec.EXACTLY)
+    private fun getChildMeasureSpecForCurrentExpandDirection(
+        maxContentSize: Int,
+        padding: Int,
+        childDimension: Int
+    ): Int {
+        return when (childDimension) {
+            WRAP_CONTENT -> {
+                MeasureSpec.makeMeasureSpec(maxContentSize - padding, MeasureSpec.AT_MOST)
+            }
+            MATCH_PARENT -> {
+                MeasureSpec.makeMeasureSpec(maxContentSize - padding, MeasureSpec.EXACTLY)
+            }
+            else -> {
+                MeasureSpec.makeMeasureSpec(childDimension, MeasureSpec.EXACTLY)
+            }
         }
     }
 
