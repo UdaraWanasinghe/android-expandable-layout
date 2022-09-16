@@ -22,10 +22,10 @@
         android:layout_gravity="center"
         android:layout_margin="8dp"
         app:animationDuration="2000"
-        app:expandDirection="horizontal"
-        app:expanded="true"
+        app:animationInterpolator="decelerate"
         app:contentGravity="center"
-        app:animationInterpolator="decelerate">
+        app:expandDirection="vertical"
+        app:expanded="true">
 
         <TextView
             style="@style/TextAppearance.MaterialComponents.Headline1"
