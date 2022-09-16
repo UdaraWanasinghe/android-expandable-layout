@@ -302,9 +302,9 @@ class ExpandableLayout @JvmOverloads constructor(
 
     private fun getMaxContentSize(
         measureSpec: Int,
+        layoutParam: Int,
         maxChildSizePlusPadding: Int,
-        maxParentSizeMinusPadding: Int,
-        layoutParam: Int
+        maxParentSizeMinusPadding: Int
     ): Int {
         return when (MeasureSpec.getMode(measureSpec)) {
             MeasureSpec.AT_MOST,
