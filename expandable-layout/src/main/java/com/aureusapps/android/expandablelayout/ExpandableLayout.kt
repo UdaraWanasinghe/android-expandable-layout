@@ -10,7 +10,6 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.view.children
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.aureusapps.android.extensions.getHorizontalMargin
 import com.aureusapps.android.extensions.getVerticalMargin
 import kotlinx.coroutines.CancellationException
@@ -25,11 +24,24 @@ import kotlin.math.max
 import kotlin.math.min
 
 class ExpandableLayout @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0,
-    defStyleRes: Int = 0
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0, defStyleRes: Int = 0
 ) : LifecycleAwareViewGroup(context, attrs, defStyleAttr, defStyleRes) {
+
+    interface OnStateChangeListener {
+        fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean)
+    }
+
+    private data class ExpandTask(
+        val expand: Boolean, val animate: Boolean
+    )
+
+    private data class ExpandState(
+        val expandTask: ExpandTask? = null, val previousState: ExpandState? = null
+    ) {
+        companion object {
+            val INITIAL = ExpandState()
+        }
+    }
 
     companion object {
         const val DIRECTION_VERTICAL = 0
@@ -44,28 +56,18 @@ class ExpandableLayout @JvmOverloads constructor(
         const val GRAVITY_CENTER = 0x22
     }
 
-    interface OnStateChangeListener {
-        fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean)
-    }
-
-    private data class ExpandTask(val expand: Boolean, val animate: Boolean)
-
-    private data class ExpandState(
-        val expandTask: ExpandTask? = null,
-        val previousState: ExpandState? = null
-    ) {
-        companion object {
-            val INITIAL = ExpandState()
-        }
-    }
-
     private val stateChangeListeners = ArrayList<OnStateChangeListener>()
     private val expandTaskChannel = Channel<ExpandTask>()
-
     private val layoutHelper = ExpandableLayoutHelper(context, attrs, defStyleAttr, defStyleRes)
+    private var expandTaskFlowJob: Job? = null
+    private val displayRect = Rect()
+    private val childRect = Rect()
+    private var animator: ValueAnimator? = null
+    private var maxContentWidth = 0
+    private var maxContentHeight = 0
 
     // attributes
-    var expanded = layoutHelper.expanded
+    var isExpanded = layoutHelper.expanded
         private set
     var expandDirection = layoutHelper.expandDirection
         set(value) {
@@ -80,44 +82,25 @@ class ExpandableLayout @JvmOverloads constructor(
             requestLayout()
         }
 
-    private var expandTaskFlowJob: Job? = null
-    private val displayRect = Rect()
-    private val childRect = Rect()
-    private var animator: ValueAnimator? = null
-    private var maxContentWidth = 0
-    private var maxContentHeight = 0
-
     override fun onCreate(owner: LifecycleOwner) {
+        cancelPreviousAndLaunchExpandTaskFlow()
+    }
+
+    private fun cancelPreviousAndLaunchExpandTaskFlow() {
         cancelExpandTaskFlowJob()
-        expandTaskFlowJob = owner.lifecycleScope.launch {
-            launchExpandTaskFlow()
-        }
-    }
-
-    private fun cancelExpandTaskFlowJob() {
-        if (expandTaskFlowJob?.isActive == true) {
-            expandTaskFlowJob?.cancel()
-        }
-    }
-
-    private suspend fun launchExpandTaskFlow() {
-        expandTaskChannel.receiveAsFlow()
-            .onStart {
-                emit(ExpandTask(expanded, false))
-            }
-            .scan(ExpandState.INITIAL) { previousState, task ->
+        expandTaskFlowJob = lifecycleScope?.launch {
+            expandTaskChannel.receiveAsFlow().onStart {
+                emit(ExpandTask(isExpanded, false))
+            }.scan(ExpandState.INITIAL) { previousState, task ->
                 ExpandState(task, previousState)
-            }
-            .filter { state ->
+            }.filter { state ->
                 val lastExpandedState = state.previousState?.expandTask?.expand
                 val nextExpandState = state.expandTask?.expand
                 lastExpandedState != nextExpandState
-            }
-            .mapNotNull { it.expandTask }
-            .collectLatest { task ->
+            }.mapNotNull { it.expandTask }.collectLatest { task ->
                 val animate = task.animate
                 val expand = task.expand
-                expanded = expand
+                isExpanded = expand
                 stateChangeListeners.forEach {
                     it.onStateChanged(this@ExpandableLayout, expand)
                 }
@@ -128,10 +111,14 @@ class ExpandableLayout @JvmOverloads constructor(
                         if (expand) {
                             val expandHeight = maxHeight - currentHeight
                             val duration = animationDuration * expandHeight / maxHeight
-                            animate(currentHeight, maxHeight, duration, animationInterpolator) { requestLayout() }
+                            animate(
+                                currentHeight, maxHeight, duration, animationInterpolator
+                            ) { requestLayout() }
                         } else {
                             val duration = animationDuration * currentHeight / maxHeight
-                            animate(currentHeight, 0, duration, animationInterpolator) { requestLayout() }
+                            animate(
+                                currentHeight, 0, duration, animationInterpolator
+                            ) { requestLayout() }
                         }
                     } else {
                         val currentWidth = width
@@ -139,10 +126,14 @@ class ExpandableLayout @JvmOverloads constructor(
                         if (expand) {
                             val expandWidth = maxWidth - currentWidth
                             val duration = animationDuration * expandWidth / maxWidth
-                            animate(currentWidth, maxWidth, duration, animationInterpolator) { requestLayout() }
+                            animate(
+                                currentWidth, maxWidth, duration, animationInterpolator
+                            ) { requestLayout() }
                         } else {
                             val duration = animationDuration * currentWidth / maxWidth
-                            animate(currentWidth, 0, duration, animationInterpolator) { requestLayout() }
+                            animate(
+                                currentWidth, 0, duration, animationInterpolator
+                            ) { requestLayout() }
                         }
                     }
                 } else {
@@ -150,10 +141,17 @@ class ExpandableLayout @JvmOverloads constructor(
                     requestLayout()
                 }
             }
+        }
+    }
+
+    private fun cancelExpandTaskFlowJob() {
+        if (expandTaskFlowJob?.isActive == true) {
+            expandTaskFlowJob?.cancel()
+        }
     }
 
     private suspend fun getMaxWidth(): Int {
-        if (maxContentWidth > 0) return maxContentWidth
+        if (isLaidOut) return maxContentWidth
         return suspendCoroutine { continuation ->
             doOnLayout {
                 continuation.resume(maxContentWidth)
@@ -162,7 +160,7 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private suspend fun getMaxHeight(): Int {
-        if (maxContentHeight > 0) return maxContentHeight
+        if (isLaidOut) return maxContentHeight
         return suspendCoroutine { continuation ->
             doOnLayout {
                 continuation.resume(maxContentHeight)
@@ -171,20 +169,15 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private suspend fun animate(
-        from: Int,
-        to: Int,
-        duration: Long,
-        interpolator: TimeInterpolator,
-        callback: (Int) -> Unit
+        from: Int, to: Int, duration: Long, interpolator: TimeInterpolator, callback: (Int) -> Unit
     ) {
-        animator = ValueAnimator.ofInt(from, to)
-            .apply {
-                this.duration = duration
-                this.interpolator = interpolator
-                this.addUpdateListener {
-                    callback(animatedValue as Int)
-                }
+        animator = ValueAnimator.ofInt(from, to).apply {
+            this.duration = duration
+            this.interpolator = interpolator
+            this.addUpdateListener {
+                callback(animatedValue as Int)
             }
+        }
         try {
             animator?.start()
             delay(duration)
@@ -198,7 +191,7 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (animator?.isRunning == true || !expanded) {
+        if (isLaidOut && (animator?.isRunning == true || !isExpanded)) {
             val animatedValue = animator?.animatedValue<Int>() ?: 0
             when (expandDirection) {
                 DIRECTION_VERTICAL -> {
@@ -210,6 +203,7 @@ class ExpandableLayout @JvmOverloads constructor(
             }
 
         } else {
+            // measure children
             var maxChildWidth = 0
             var maxChildHeight = 0
             for (child in children) {
@@ -229,19 +223,27 @@ class ExpandableLayout @JvmOverloads constructor(
                     maxChildHeight = max(maxChildHeight, child.measuredHeight)
                 }
             }
-            measureChildren(widthMeasureSpec, heightMeasureSpec)
-            val measuredWidth = getLayoutDimension(widthMeasureSpec, layoutParams.width, maxChildWidth)
-            val measuredHeight = getLayoutDimension(heightMeasureSpec, layoutParams.height, maxChildHeight)
+
+            // measure layout
+            val measuredWidth =
+                getLayoutDimension(widthMeasureSpec, layoutParams.width, maxChildWidth)
+            val measuredHeight =
+                getLayoutDimension(heightMeasureSpec, layoutParams.height, maxChildHeight)
             maxContentWidth = measuredWidth
             maxContentHeight = measuredHeight
-            setMeasuredDimension(measuredWidth, measuredHeight)
+            when (expandDirection) {
+                DIRECTION_VERTICAL -> {
+                    setMeasuredDimension(measuredWidth, if (isExpanded) measuredHeight else 0)
+                }
+                DIRECTION_HORIZONTAL -> {
+                    setMeasuredDimension(if (isExpanded) measuredWidth else 0, measuredHeight)
+                }
+            }
         }
     }
 
     private fun getLayoutDimension(
-        measureSpec: Int,
-        layoutParam: Int,
-        maxChildSize: Int
+        measureSpec: Int, layoutParam: Int, maxChildSize: Int
     ): Int {
         return when (MeasureSpec.getMode(measureSpec)) {
             MeasureSpec.AT_MOST -> {
@@ -285,9 +287,7 @@ class ExpandableLayout @JvmOverloads constructor(
             var marginTop = 0
             var marginRight = 0
             var marginBottom = 0
-
             val childLayoutParams = child.layoutParams
-
             if (childLayoutParams is MarginLayoutParams) {
                 marginLeft = childLayoutParams.leftMargin
                 marginTop = childLayoutParams.topMargin
@@ -301,17 +301,10 @@ class ExpandableLayout @JvmOverloads constructor(
                 b - t - marginBottom - paddingBottom
             )
             layoutHelper.applyGravity(
-                contentGravity,
-                displayRect,
-                child.measuredWidth,
-                child.measuredHeight,
-                childRect
+                contentGravity, displayRect, child.measuredWidth, child.measuredHeight, childRect
             )
             child.layout(
-                childRect.left,
-                childRect.top,
-                childRect.right,
-                childRect.bottom
+                childRect.left, childRect.top, childRect.right, childRect.bottom
             )
         }
     }
@@ -322,7 +315,7 @@ class ExpandableLayout @JvmOverloads constructor(
 
     fun addStateChangeListener(listener: OnStateChangeListener) {
         stateChangeListeners.add(listener)
-        listener.onStateChanged(this, expanded)
+        listener.onStateChanged(this, isExpanded)
     }
 
     fun removeStateChangeListener(listener: OnStateChangeListener) {
@@ -333,12 +326,12 @@ class ExpandableLayout @JvmOverloads constructor(
         lifecycleScope?.launch {
             expandTaskChannel.send(ExpandTask(expand, animate))
         } ?: run {
-            expanded = expand
+            isExpanded = expand
         }
     }
 
     fun toggleExpanded(animate: Boolean = true) {
-        setExpanded(!expanded, animate)
+        setExpanded(!isExpanded, animate)
     }
 
 }
