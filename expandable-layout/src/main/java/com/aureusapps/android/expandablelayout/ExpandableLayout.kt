@@ -16,7 +16,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -34,14 +37,6 @@ class ExpandableLayout @JvmOverloads constructor(
     private data class ExpandTask(
         val expand: Boolean, val animate: Boolean
     )
-
-    private data class ExpandState(
-        val expandTask: ExpandTask? = null, val previousState: ExpandState? = null
-    ) {
-        companion object {
-            val INITIAL = ExpandState()
-        }
-    }
 
     companion object {
         const val DIRECTION_VERTICAL = 0
@@ -91,13 +86,9 @@ class ExpandableLayout @JvmOverloads constructor(
         expandTaskFlowJob = lifecycleScope?.launch {
             expandTaskChannel.receiveAsFlow().onStart {
                 emit(ExpandTask(isExpanded, false))
-            }.scan(ExpandState.INITIAL) { previousState, task ->
-                ExpandState(task, previousState)
-            }.filter { state ->
-                val lastExpandedState = state.previousState?.expandTask?.expand
-                val nextExpandState = state.expandTask?.expand
-                lastExpandedState != nextExpandState
-            }.mapNotNull { it.expandTask }.collectLatest { task ->
+            }.filter { task ->
+                task.expand != isExpanded
+            }.collectLatest { task ->
                 val animate = task.animate
                 val expand = task.expand
                 isExpanded = expand
@@ -327,6 +318,7 @@ class ExpandableLayout @JvmOverloads constructor(
             expandTaskChannel.send(ExpandTask(expand, animate))
         } ?: run {
             isExpanded = expand
+            requestLayout()
         }
     }
 
