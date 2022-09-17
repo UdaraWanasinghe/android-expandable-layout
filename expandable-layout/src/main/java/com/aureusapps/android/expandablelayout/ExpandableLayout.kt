@@ -191,7 +191,7 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (isLaidOut && (animator?.isRunning == true || !isExpanded)) {
+        if (animator?.isRunning == true) {
             val animatedValue = animator?.animatedValue<Int>() ?: 0
             when (expandDirection) {
                 DIRECTION_VERTICAL -> {
