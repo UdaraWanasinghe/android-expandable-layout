@@ -12,17 +12,13 @@ import androidx.core.view.doOnLayout
 import androidx.lifecycle.LifecycleOwner
 import com.aureusapps.android.extensions.getHorizontalMargin
 import com.aureusapps.android.extensions.getVerticalMargin
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
 import kotlin.math.min
 
@@ -142,20 +138,26 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private suspend fun getMaxWidth(): Int {
-        if (isLaidOut) return maxContentWidth
-        return suspendCoroutine { continuation ->
-            doOnLayout {
-                continuation.resume(maxContentWidth)
+        return if (isLayoutRequested) {
+            suspendCancellableCoroutine { continuation ->
+                doOnLayout {
+                    continuation.resume(maxContentWidth)
+                }
             }
+        } else {
+            maxContentWidth
         }
     }
 
     private suspend fun getMaxHeight(): Int {
-        if (isLaidOut) return maxContentHeight
-        return suspendCoroutine { continuation ->
-            doOnLayout {
-                continuation.resume(maxContentHeight)
+        return if (isLayoutRequested) {
+            suspendCancellableCoroutine { continuation ->
+                doOnLayout {
+                    continuation.resume(maxContentHeight)
+                }
             }
+        } else {
+            maxContentHeight
         }
     }
 
