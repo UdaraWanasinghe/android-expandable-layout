@@ -26,12 +26,20 @@ internal class ExpandableLayoutHelper(
     val contentGravity: Int
 
     init {
-        context.obtainStyledAttributes(attrs, R.styleable.ExpandableLayout, defStyleAttr, defStyleRes).apply {
+        context.obtainStyledAttributes(
+            attrs,
+            R.styleable.ExpandableLayout,
+            defStyleAttr,
+            defStyleRes
+        ).apply {
             expanded = getBoolean(R.styleable.ExpandableLayout_expanded, false)
-            expandDirection = getInt(R.styleable.ExpandableLayout_expandDirection, DIRECTION_VERTICAL)
+            expandDirection =
+                getInt(R.styleable.ExpandableLayout_expandDirection, DIRECTION_VERTICAL)
             animationDuration = getInt(R.styleable.ExpandableLayout_animationDuration, 300).toLong()
-            animationInterpolator = getInterpolator(R.styleable.ExpandableLayout_animationInterpolator)
-            contentGravity = getInt(R.styleable.ExpandableLayout_contentGravity, GRAVITY_TOP or GRAVITY_LEFT)
+            animationInterpolator =
+                getInterpolator(R.styleable.ExpandableLayout_animationInterpolator)
+            contentGravity =
+                getInt(R.styleable.ExpandableLayout_contentGravity, GRAVITY_TOP or GRAVITY_LEFT)
             recycle()
         }
     }

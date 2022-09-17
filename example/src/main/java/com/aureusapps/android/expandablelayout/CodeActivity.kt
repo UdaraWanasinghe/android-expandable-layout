@@ -57,7 +57,10 @@ class CodeActivity : AppCompatActivity() {
                         animationDuration = 2000
                         contentGravity = ExpandableLayout.GRAVITY_CENTER
                         addStateChangeListener(object : ExpandableLayout.OnStateChangeListener {
-                            override fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
+                            override fun onStateChanged(
+                                expandableLayout: ExpandableLayout,
+                                isExpanded: Boolean
+                            ) {
                                 materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)
                             }
                         })
@@ -65,10 +68,11 @@ class CodeActivity : AppCompatActivity() {
                     .addView {
                         TextView(it.context)
                             .apply {
-                                layoutParams = ViewGroup.MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                                    .apply {
-                                        setMargins(16.dp)
-                                    }
+                                layoutParams =
+                                    ViewGroup.MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                                        .apply {
+                                            setMargins(16.dp)
+                                        }
                                 text = "HELLO WORLD"
                                 setTextStyle(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline1)
                                 setTextColor(Color.WHITE)

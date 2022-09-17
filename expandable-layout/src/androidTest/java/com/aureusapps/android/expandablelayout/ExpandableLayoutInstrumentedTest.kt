@@ -290,8 +290,10 @@ class ExpandableLayoutInstrumentedTest {
         expandableLayout.layoutParams = ViewGroup.LayoutParams(expandableWidth, expandableHeight)
         expandableLayout.setExpanded(true)
         expandableLayout.expandDirection = expandDirection
-        wrappedLayout1.layoutParams = expandableLayout.generateLayoutParams(wrapped1Width, wrapped1Height)
-        wrappedLayout2.layoutParams = expandableLayout.generateLayoutParams(wrapped2Width, wrapped2Height)
+        wrappedLayout1.layoutParams =
+            expandableLayout.generateLayoutParams(wrapped1Width, wrapped1Height)
+        wrappedLayout2.layoutParams =
+            expandableLayout.generateLayoutParams(wrapped2Width, wrapped2Height)
         expandableLayout.measure(widthMeasureSpec, heightMeasureSpec)
 
         // expandable layout
