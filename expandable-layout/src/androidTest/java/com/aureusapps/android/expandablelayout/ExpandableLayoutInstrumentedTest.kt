@@ -285,7 +285,7 @@ class ExpandableLayoutInstrumentedTest {
         expectedWrapped1Height: Int,
         expectedWrapped2Width: Int,
         expectedWrapped2Height: Int,
-        expandDirection: ExpandableLayout.ExpandDirection = ExpandableLayout.ExpandDirection.HORIZONTAL
+        expandDirection: Int = ExpandableLayout.DIRECTION_HORIZONTAL
     ) {
         expandableLayout.layoutParams = ViewGroup.LayoutParams(expandableWidth, expandableHeight)
         expandableLayout.setExpanded(true)

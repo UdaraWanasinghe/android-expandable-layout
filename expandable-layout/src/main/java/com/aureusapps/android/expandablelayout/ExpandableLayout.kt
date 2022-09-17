@@ -32,28 +32,16 @@ class ExpandableLayout @JvmOverloads constructor(
 ) : LifecycleAwareViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     companion object {
-        internal const val LEFT = 0x01
-        internal const val CENTER_HORIZONTAL = 0x02
-        internal const val RIGHT = 0x04
-        internal const val TOP = 0x10
-        internal const val CENTER_VERTICAL = 0x20
-        internal const val BOTTOM = 0x40
-        internal const val CENTER = 0x22
-    }
+        const val DIRECTION_VERTICAL = 0
+        const val DIRECTION_HORIZONTAL = 1
 
-    enum class Gravity(val value: Int) {
-        LEFT(ExpandableLayout.LEFT),
-        CENTER_HORIZONTAL(ExpandableLayout.CENTER_HORIZONTAL),
-        RIGHT(ExpandableLayout.RIGHT),
-        TOP(ExpandableLayout.TOP),
-        CENTER_VERTICAL(ExpandableLayout.CENTER_VERTICAL),
-        BOTTOM(ExpandableLayout.BOTTOM),
-        CENTER(ExpandableLayout.CENTER)
-    }
-
-    enum class ExpandDirection {
-        HORIZONTAL,
-        VERTICAL
+        const val GRAVITY_LEFT = 0x01
+        const val GRAVITY_CENTER_HORIZONTAL = 0x02
+        const val GRAVITY_RIGHT = 0x04
+        const val GRAVITY_TOP = 0x10
+        const val GRAVITY_CENTER_VERTICAL = 0x20
+        const val GRAVITY_BOTTOM = 0x40
+        const val GRAVITY_CENTER = 0x22
     }
 
     interface OnStateChangeListener {
@@ -86,7 +74,6 @@ class ExpandableLayout @JvmOverloads constructor(
         }
     var animationDuration = layoutHelper.animationDuration
     var animationInterpolator = layoutHelper.animationInterpolator
-
     var contentGravity = layoutHelper.contentGravity
         set(value) {
             field = value
@@ -135,7 +122,7 @@ class ExpandableLayout @JvmOverloads constructor(
                     it.onStateChanged(this@ExpandableLayout, expand)
                 }
                 if (animate) {
-                    if (expandDirection == ExpandDirection.VERTICAL) {
+                    if (expandDirection == DIRECTION_VERTICAL) {
                         val currentHeight = height
                         val maxHeight = getMaxHeight()
                         if (expand) {
@@ -214,10 +201,10 @@ class ExpandableLayout @JvmOverloads constructor(
         if (animator?.isRunning == true || !expanded) {
             val animatedValue = animator?.animatedValue<Int>() ?: 0
             when (expandDirection) {
-                ExpandDirection.VERTICAL -> {
+                DIRECTION_VERTICAL -> {
                     setMeasuredDimension(measuredWidth, animatedValue)
                 }
-                ExpandDirection.HORIZONTAL -> {
+                DIRECTION_HORIZONTAL -> {
                     setMeasuredDimension(animatedValue, measuredHeight)
                 }
             }
@@ -331,15 +318,6 @@ class ExpandableLayout @JvmOverloads constructor(
 
     override fun generateDefaultLayoutParams(): LayoutParams {
         return MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-    }
-
-    fun setContentGravity(gravity: Gravity) {
-        this.contentGravity = gravity.value
-        requestLayout()
-    }
-
-    fun getContentGravity(): Gravity {
-        return Gravity.values().first { it.value == contentGravity }
     }
 
     fun addStateChangeListener(listener: OnStateChangeListener) {

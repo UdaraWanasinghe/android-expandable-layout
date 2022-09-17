@@ -5,14 +5,12 @@ import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.LayoutDirection
 import android.view.animation.*
-import androidx.core.view.GravityCompat
-import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.BOTTOM
-import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.LEFT
-import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.RIGHT
-import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.TOP
-import com.aureusapps.android.extensions.getEnum
+import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.DIRECTION_VERTICAL
+import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.GRAVITY_BOTTOM
+import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.GRAVITY_LEFT
+import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.GRAVITY_RIGHT
+import com.aureusapps.android.expandablelayout.ExpandableLayout.Companion.GRAVITY_TOP
 
 internal class ExpandableLayoutHelper(
     context: Context,
@@ -23,18 +21,17 @@ internal class ExpandableLayoutHelper(
 
     val expanded: Boolean
     val animationDuration: Long
-    val expandDirection: ExpandableLayout.ExpandDirection
+    val expandDirection: Int
     val animationInterpolator: TimeInterpolator
     val contentGravity: Int
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.ExpandableLayout, defStyleAttr, defStyleRes).apply {
             expanded = getBoolean(R.styleable.ExpandableLayout_expanded, false)
-            expandDirection = getEnum(R.styleable.ExpandableLayout_expandDirection, ExpandableLayout.ExpandDirection.VERTICAL)
-            animationDuration = getInteger(R.styleable.ExpandableLayout_animationDuration, 300).toLong()
+            expandDirection = getInt(R.styleable.ExpandableLayout_expandDirection, DIRECTION_VERTICAL)
+            animationDuration = getInt(R.styleable.ExpandableLayout_animationDuration, 300).toLong()
             animationInterpolator = getInterpolator(R.styleable.ExpandableLayout_animationInterpolator)
-            contentGravity = getInt(R.styleable.ExpandableLayout_contentGravity, TOP or LEFT)
-                .let { GravityCompat.getAbsoluteGravity(it, LayoutDirection.LOCALE) }
+            contentGravity = getInt(R.styleable.ExpandableLayout_contentGravity, GRAVITY_TOP or GRAVITY_LEFT)
             recycle()
         }
     }
@@ -60,16 +57,16 @@ internal class ExpandableLayoutHelper(
         height: Int,
         outRect: Rect
     ) {
-        val left = if (gravity and LEFT != 0) {
+        val left = if (gravity and GRAVITY_LEFT != 0) {
             displayRect.left
-        } else if (gravity and RIGHT != 0) {
+        } else if (gravity and GRAVITY_RIGHT != 0) {
             displayRect.right - width
         } else {
             displayRect.left + (displayRect.width() - width) / 2
         }
-        val top = if (gravity and TOP != 0) {
+        val top = if (gravity and GRAVITY_TOP != 0) {
             displayRect.top
-        } else if (gravity and BOTTOM != 0) {
+        } else if (gravity and GRAVITY_BOTTOM != 0) {
             displayRect.bottom - height
         } else {
             displayRect.top + (displayRect.height() - height) / 2
