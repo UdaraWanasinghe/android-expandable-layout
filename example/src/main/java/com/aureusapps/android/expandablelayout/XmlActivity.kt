@@ -15,7 +15,7 @@ class XmlActivity : AppCompatActivity() {
         button.setOnClickListener {
             expandableLayout.toggleExpanded()
         }
-        expandableLayout.addStateChangeListener(object :
+        expandableLayout.addExpandStateChangeListener(object :
             ExpandableLayout.OnExpandStateChangeListener {
             override fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean) {
                 button.text = if (isExpanded) "Collapse" else "Expand"

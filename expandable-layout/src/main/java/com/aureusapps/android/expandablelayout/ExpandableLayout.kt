@@ -306,12 +306,12 @@ class ExpandableLayout @JvmOverloads constructor(
         return MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
     }
 
-    fun addStateChangeListener(listener: OnExpandStateChangeListener) {
+    fun addExpandStateChangeListener(listener: OnExpandStateChangeListener) {
         stateChangeListeners.add(listener)
         listener.onStateChanged(this, isExpanded)
     }
 
-    fun removeStateChangeListener(listener: OnExpandStateChangeListener) {
+    fun removeExpandStateChangeListener(listener: OnExpandStateChangeListener) {
         stateChangeListeners.remove(listener)
     }
 
