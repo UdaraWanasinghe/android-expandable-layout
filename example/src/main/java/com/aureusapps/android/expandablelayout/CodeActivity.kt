@@ -56,7 +56,8 @@ class CodeActivity : AppCompatActivity() {
                         animationInterpolator = DecelerateInterpolator()
                         animationDuration = 2000
                         contentGravity = ExpandableLayout.GRAVITY_CENTER
-                        addStateChangeListener(object : ExpandableLayout.OnStateChangeListener {
+                        addStateChangeListener(object :
+                            ExpandableLayout.OnExpandStateChangeListener {
                             override fun onStateChanged(
                                 expandableLayout: ExpandableLayout,
                                 isExpanded: Boolean

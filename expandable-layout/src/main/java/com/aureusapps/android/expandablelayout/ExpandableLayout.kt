@@ -26,7 +26,7 @@ class ExpandableLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0, defStyleRes: Int = 0
 ) : LifecycleAwareViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    interface OnStateChangeListener {
+    interface OnExpandStateChangeListener {
         fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean)
     }
 
@@ -47,7 +47,7 @@ class ExpandableLayout @JvmOverloads constructor(
         const val GRAVITY_CENTER = 0x22
     }
 
-    private val stateChangeListeners = ArrayList<OnStateChangeListener>()
+    private val stateChangeListeners = ArrayList<OnExpandStateChangeListener>()
     private val expandTaskChannel = Channel<ExpandTask>()
     private val layoutHelper = ExpandableLayoutHelper(context, attrs, defStyleAttr, defStyleRes)
     private var expandTaskFlowJob: Job? = null
@@ -306,12 +306,12 @@ class ExpandableLayout @JvmOverloads constructor(
         return MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
     }
 
-    fun addStateChangeListener(listener: OnStateChangeListener) {
+    fun addStateChangeListener(listener: OnExpandStateChangeListener) {
         stateChangeListeners.add(listener)
         listener.onStateChanged(this, isExpanded)
     }
 
-    fun removeStateChangeListener(listener: OnStateChangeListener) {
+    fun removeStateChangeListener(listener: OnExpandStateChangeListener) {
         stateChangeListeners.remove(listener)
     }
 
