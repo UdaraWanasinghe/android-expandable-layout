@@ -197,8 +197,8 @@ class ExpandableLayout @JvmOverloads constructor(
 
         } else {
             // measure children
-            var maxChildWidth = 0
-            var maxChildHeight = 0
+            var maxChildContentWidth = 0
+            var maxChildContentHeight = 0
             for (child in children) {
                 if (child.visibility != GONE) {
                     val childWidthMeasureSpec = getChildMeasureSpec(
@@ -212,16 +212,18 @@ class ExpandableLayout @JvmOverloads constructor(
                         child.layoutParams.height
                     )
                     child.measure(childWidthMeasureSpec, childHeightMeasureSpec)
-                    maxChildWidth = max(maxChildWidth, child.measuredWidth)
-                    maxChildHeight = max(maxChildHeight, child.measuredHeight)
+                    maxChildContentWidth =
+                        max(maxChildContentWidth, child.measuredWidth + child.getHorizontalMargin())
+                    maxChildContentHeight =
+                        max(maxChildContentHeight, child.measuredHeight + child.getVerticalMargin())
                 }
             }
 
             // measure layout
             val measuredWidth =
-                getLayoutDimension(widthMeasureSpec, layoutParams.width, maxChildWidth)
+                getLayoutDimension(widthMeasureSpec, layoutParams.width, maxChildContentWidth)
             val measuredHeight =
-                getLayoutDimension(heightMeasureSpec, layoutParams.height, maxChildHeight)
+                getLayoutDimension(heightMeasureSpec, layoutParams.height, maxChildContentHeight)
             maxContentWidth = measuredWidth
             maxContentHeight = measuredHeight
             when (expandDirection) {
