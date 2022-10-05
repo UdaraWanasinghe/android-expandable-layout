@@ -308,6 +308,19 @@ class ExpandableLayout @JvmOverloads constructor(
         return MarginLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
     }
 
+    override fun generateLayoutParams(attrs: AttributeSet): LayoutParams {
+        return MarginLayoutParams(context, attrs)
+    }
+
+    override fun generateLayoutParams(p: LayoutParams): LayoutParams {
+        if (p is MarginLayoutParams) return p
+        return MarginLayoutParams(p)
+    }
+
+    override fun checkLayoutParams(p: LayoutParams): Boolean {
+        return p is MarginLayoutParams
+    }
+
     fun addExpandStateChangeListener(listener: OnExpandStateChangeListener) {
         stateChangeListeners.add(listener)
         listener.onStateChanged(this, isExpanded)
