@@ -10,8 +10,8 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.view.children
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.LifecycleOwner
-import com.aureusapps.android.extensions.getHorizontalMargin
-import com.aureusapps.android.extensions.getVerticalMargin
+import com.aureusapps.android.extensions.horizontalMargin
+import com.aureusapps.android.extensions.verticalMargin
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
@@ -203,19 +203,19 @@ class ExpandableLayout @JvmOverloads constructor(
                 if (child.visibility != GONE) {
                     val childWidthMeasureSpec = getChildMeasureSpec(
                         widthMeasureSpec,
-                        child.getHorizontalMargin() + paddingLeft + paddingRight,
+                        child.horizontalMargin + paddingLeft + paddingRight,
                         child.layoutParams.width
                     )
                     val childHeightMeasureSpec = getChildMeasureSpec(
                         heightMeasureSpec,
-                        child.getVerticalMargin() + paddingTop + paddingBottom,
+                        child.verticalMargin + paddingTop + paddingBottom,
                         child.layoutParams.height
                     )
                     child.measure(childWidthMeasureSpec, childHeightMeasureSpec)
                     maxChildContentWidth =
-                        max(maxChildContentWidth, child.measuredWidth + child.getHorizontalMargin())
+                        max(maxChildContentWidth, child.measuredWidth + child.horizontalMargin)
                     maxChildContentHeight =
-                        max(maxChildContentHeight, child.measuredHeight + child.getVerticalMargin())
+                        max(maxChildContentHeight, child.measuredHeight + child.verticalMargin)
                 }
             }
 
