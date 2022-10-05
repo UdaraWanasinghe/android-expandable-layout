@@ -4,8 +4,8 @@
         <attr name="expanded" format="boolean" />
         <attr name="animationDuration" format="integer" />
         <attr name="expandDirection" format="enum">
-            <enum name="horizontal" value="0" />
-            <enum name="vertical" value="1" />
+            <enum name="vertical" value="0" />
+            <enum name="horizontal" value="1" />
         </attr>
         <attr name="animationInterpolator" format="enum">
             <enum name="accelerate_decelerate" value="0" />
