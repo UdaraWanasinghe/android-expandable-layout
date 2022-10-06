@@ -95,6 +95,7 @@ class ExpandableLayout @JvmOverloads constructor(
                     if (expandDirection == DIRECTION_VERTICAL) {
                         val currentHeight = height
                         val maxHeight = getMaxHeight()
+                        if (maxHeight == 0) return@collectLatest
                         if (expand) {
                             val expandHeight = maxHeight - currentHeight
                             val duration = animationDuration * expandHeight / maxHeight
@@ -110,6 +111,7 @@ class ExpandableLayout @JvmOverloads constructor(
                     } else {
                         val currentWidth = width
                         val maxWidth = getMaxWidth()
+                        if (maxWidth == 0) return@collectLatest
                         if (expand) {
                             val expandWidth = maxWidth - currentWidth
                             val duration = animationDuration * expandWidth / maxWidth
