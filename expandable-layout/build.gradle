@@ -4,12 +4,18 @@ plugins {
     id 'maven-publish'
 }
 
+ext {
+    PUBLISH_GROUP_ID = 'com.aureusapps.android'
+    PUBLISH_VERSION = version_name
+    PUBLISH_ARTIFACT_ID = 'expandable-layout'
+}
+
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         minSdk 21
-        targetSdk 32
+        targetSdk 33
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -21,41 +27,27 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
 }
 
 dependencies {
-    implementation "androidx.core:core-ktx:$core_version"
-    implementation "com.aureusapps.android:extensions:$extensions_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
+    implementation libs.core.ktx
+    implementation libs.aureusapps.extensions
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.lifecycle.runtime.ktx
 
-    testImplementation "junit:junit:$junit_version"
-    androidTestImplementation "androidx.test.ext:junit:$junit_ext_version"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_version"
+    testImplementation libs.junit
+
+    androidTestImplementation libs.junit.ext
+    androidTestImplementation libs.espresso.core
 }
 
-task androidSourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    from android.sourceSets.main.java.srcDirs
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                artifact androidSourcesJar
-                groupId = 'com.aureusapps.android'
-                artifactId = 'expandable-layout'
-                version = version_name
-            }
-        }
-    }
-}
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
