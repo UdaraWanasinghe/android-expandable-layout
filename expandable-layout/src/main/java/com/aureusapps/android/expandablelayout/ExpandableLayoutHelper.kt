@@ -32,14 +32,24 @@ internal class ExpandableLayoutHelper(
             defStyleAttr,
             defStyleRes
         ).apply {
-            expanded = getBoolean(R.styleable.ExpandableLayout_expanded, false)
-            expandDirection =
-                getInt(R.styleable.ExpandableLayout_expandDirection, DIRECTION_VERTICAL)
-            animationDuration = getInt(R.styleable.ExpandableLayout_animationDuration, 300).toLong()
+            expanded = getBoolean(
+                R.styleable.ExpandableLayout_expanded,
+                false
+            )
+            expandDirection = getInt(
+                R.styleable.ExpandableLayout_expandDirection,
+                DIRECTION_VERTICAL
+            )
+            animationDuration = getInt(
+                R.styleable.ExpandableLayout_animationDuration,
+                300
+            ).toLong()
             animationInterpolator =
                 getInterpolator(R.styleable.ExpandableLayout_animationInterpolator)
-            contentGravity =
-                getInt(R.styleable.ExpandableLayout_contentGravity, GRAVITY_TOP or GRAVITY_LEFT)
+            contentGravity = getInt(
+                R.styleable.ExpandableLayout_contentGravity,
+                GRAVITY_TOP or GRAVITY_LEFT
+            )
             recycle()
         }
     }

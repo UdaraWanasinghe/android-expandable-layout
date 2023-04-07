@@ -23,7 +23,10 @@ import kotlin.math.max
 import kotlin.math.min
 
 class ExpandableLayout @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0, defStyleRes: Int = 0
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+    defStyleRes: Int = 0
 ) : LifecycleAwareViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     interface OnExpandStateChangeListener {
@@ -31,7 +34,8 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private data class ExpandTask(
-        val expand: Boolean, val animate: Boolean
+        val expand: Boolean,
+        val animate: Boolean
     )
 
     companion object {
@@ -49,7 +53,12 @@ class ExpandableLayout @JvmOverloads constructor(
 
     private val stateChangeListeners = ArrayList<OnExpandStateChangeListener>()
     private val expandTaskChannel = Channel<ExpandTask>()
-    private val layoutHelper = ExpandableLayoutHelper(context, attrs, defStyleAttr, defStyleRes)
+    private val layoutHelper = ExpandableLayoutHelper(
+        context,
+        attrs,
+        defStyleAttr,
+        defStyleRes
+    )
     private var expandTaskFlowJob: Job? = null
     private val displayRect = Rect()
     private val childRect = Rect()
@@ -164,7 +173,11 @@ class ExpandableLayout @JvmOverloads constructor(
     }
 
     private suspend fun animate(
-        from: Int, to: Int, duration: Long, interpolator: TimeInterpolator, callback: (Int) -> Unit
+        from: Int,
+        to: Int,
+        duration: Long,
+        interpolator: TimeInterpolator,
+        callback: (Int) -> Unit
     ) {
         animator = ValueAnimator.ofInt(from, to).apply {
             this.duration = duration
@@ -201,6 +214,8 @@ class ExpandableLayout @JvmOverloads constructor(
             // measure children
             var maxChildContentWidth = 0
             var maxChildContentHeight = 0
+            val horizontalPadding = paddingLeft + paddingRight
+            val verticalPadding = paddingTop + paddingBottom
             for (child in children) {
                 if (child.visibility != GONE) {
                     val childWidthMeasureSpec = getChildMeasureSpec(
@@ -210,22 +225,32 @@ class ExpandableLayout @JvmOverloads constructor(
                     )
                     val childHeightMeasureSpec = getChildMeasureSpec(
                         heightMeasureSpec,
-                        child.verticalMargin + paddingTop + paddingBottom,
+                        child.verticalMargin + verticalPadding,
                         child.layoutParams.height
                     )
                     child.measure(childWidthMeasureSpec, childHeightMeasureSpec)
-                    maxChildContentWidth =
-                        max(maxChildContentWidth, child.measuredWidth + child.horizontalMargin)
-                    maxChildContentHeight =
-                        max(maxChildContentHeight, child.measuredHeight + child.verticalMargin)
+                    maxChildContentWidth = max(
+                        maxChildContentWidth,
+                        child.measuredWidth + child.horizontalMargin + horizontalPadding
+                    )
+                    maxChildContentHeight = max(
+                        maxChildContentHeight,
+                        child.measuredHeight + child.verticalMargin + verticalPadding
+                    )
                 }
             }
 
             // measure layout
-            val measuredWidth =
-                getLayoutDimension(widthMeasureSpec, layoutParams.width, maxChildContentWidth)
-            val measuredHeight =
-                getLayoutDimension(heightMeasureSpec, layoutParams.height, maxChildContentHeight)
+            val measuredWidth = getLayoutDimension(
+                widthMeasureSpec,
+                layoutParams.width,
+                maxChildContentWidth
+            )
+            val measuredHeight = getLayoutDimension(
+                heightMeasureSpec,
+                layoutParams.height,
+                maxChildContentHeight
+            )
             maxContentWidth = measuredWidth
             maxContentHeight = measuredHeight
             when (expandDirection) {
