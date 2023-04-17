@@ -22,7 +22,7 @@ import kotlin.coroutines.resume
 import kotlin.math.max
 import kotlin.math.min
 
-class ExpandableLayout @JvmOverloads constructor(
+open class ExpandableLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -205,6 +205,7 @@ class ExpandableLayout @JvmOverloads constructor(
                 DIRECTION_VERTICAL -> {
                     setMeasuredDimension(measuredWidth, animatedValue)
                 }
+
                 DIRECTION_HORIZONTAL -> {
                     setMeasuredDimension(animatedValue, measuredHeight)
                 }
@@ -257,6 +258,7 @@ class ExpandableLayout @JvmOverloads constructor(
                 DIRECTION_VERTICAL -> {
                     setMeasuredDimension(measuredWidth, if (isExpanded) measuredHeight else 0)
                 }
+
                 DIRECTION_HORIZONTAL -> {
                     setMeasuredDimension(if (isExpanded) measuredWidth else 0, measuredHeight)
                 }
@@ -273,30 +275,37 @@ class ExpandableLayout @JvmOverloads constructor(
                     WRAP_CONTENT -> {
                         min(maxChildSize, MeasureSpec.getSize(measureSpec))
                     }
+
                     MATCH_PARENT -> {
                         MeasureSpec.getSize(measureSpec)
                     }
+
                     else -> {
                         min(layoutParam, MeasureSpec.getSize(measureSpec))
                     }
                 }
             }
+
             MeasureSpec.EXACTLY -> {
                 MeasureSpec.getSize(measureSpec)
             }
+
             MeasureSpec.UNSPECIFIED -> {
                 when (layoutParam) {
                     WRAP_CONTENT -> {
                         maxChildSize
                     }
+
                     MATCH_PARENT -> {
                         max(maxChildSize, MeasureSpec.getSize(measureSpec))
                     }
+
                     else -> {
                         layoutParam
                     }
                 }
             }
+
             else -> {
                 throw Exception("Unknown MeasureSpec mode")
             }
