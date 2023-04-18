@@ -41,8 +41,6 @@ android {
 dependencies {
     implementation libs.core.ktx
     implementation libs.aureusapps.extensions
-    implementation libs.kotlinx.coroutines.android
-    implementation libs.lifecycle.runtime.ktx
 
     testImplementation libs.junit
 

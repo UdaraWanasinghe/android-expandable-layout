@@ -21,6 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="8dp"
+        android:background="@drawable/frame"
         app:animationDuration="2000"
         app:animationInterpolator="decelerate"
         app:contentGravity="center"
@@ -28,13 +29,13 @@
         app:expanded="true">
 
         <TextView
-            style="@style/TextAppearance.MaterialComponents.Headline1"
+            style="@style/TextAppearance.MaterialComponents.Headline2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/frame"
+            android:padding="16dp"
             android:text="@string/hello_world"
             android:textAlignment="center"
-            android:textColor="@color/white"
+            android:textColor="@color/yellow"
             android:textStyle="bold" />
 
     </com.aureusapps.android.expandablelayout.ExpandableLayout>

@@ -15,7 +15,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@Suppress("NestedLambdaShadowedImplicitParameter")
 @RunWith(AndroidJUnit4::class)
 class ExpandableLayoutInstrumentedTest {
 
