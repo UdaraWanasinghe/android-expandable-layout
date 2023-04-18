@@ -68,9 +68,14 @@ open class ExpandableLayout @JvmOverloads constructor(
             requestLayout()
         }
 
-    fun addExpandStateChangeListener(listener: OnExpandStateChangeListener) {
+    fun addExpandStateChangeListener(
+        listener: OnExpandStateChangeListener,
+        notifyStateChanged: Boolean
+    ) {
         stateChangeListeners.add(listener)
-        listener.onStateChanged(this, isExpanded)
+        if (notifyStateChanged) {
+            listener.onStateChanged(this, isExpanded)
+        }
     }
 
     fun removeExpandStateChangeListener(listener: OnExpandStateChangeListener) {
@@ -91,13 +96,19 @@ open class ExpandableLayout @JvmOverloads constructor(
                 if (expand) {
                     val expandHeight = maxHeight - currentHeight
                     val duration = animationDuration * expandHeight / maxHeight
-                    animate(
-                        currentHeight, maxHeight, duration, animationInterpolator
+                    startAnimation(
+                        currentHeight,
+                        maxHeight,
+                        duration,
+                        animationInterpolator
                     ) { requestLayout() }
                 } else {
                     val duration = animationDuration * currentHeight / maxHeight
-                    animate(
-                        currentHeight, 0, duration, animationInterpolator
+                    startAnimation(
+                        currentHeight,
+                        0,
+                        duration,
+                        animationInterpolator
                     ) { requestLayout() }
                 }
             } else {
@@ -107,13 +118,19 @@ open class ExpandableLayout @JvmOverloads constructor(
                 if (expand) {
                     val expandWidth = maxWidth - currentWidth
                     val duration = animationDuration * expandWidth / maxWidth
-                    animate(
-                        currentWidth, maxWidth, duration, animationInterpolator
+                    startAnimation(
+                        currentWidth,
+                        maxWidth,
+                        duration,
+                        animationInterpolator
                     ) { requestLayout() }
                 } else {
                     val duration = animationDuration * currentWidth / maxWidth
-                    animate(
-                        currentWidth, 0, duration, animationInterpolator
+                    startAnimation(
+                        currentWidth,
+                        0,
+                        duration,
+                        animationInterpolator
                     ) { requestLayout() }
                 }
             }
@@ -271,7 +288,7 @@ open class ExpandableLayout @JvmOverloads constructor(
     }
 
     @Synchronized
-    private fun animate(
+    private fun startAnimation(
         from: Int,
         to: Int,
         duration: Long,
