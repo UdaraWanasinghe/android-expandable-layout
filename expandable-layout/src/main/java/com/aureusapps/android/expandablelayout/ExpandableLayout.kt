@@ -70,7 +70,7 @@ open class ExpandableLayout @JvmOverloads constructor(
 
     fun addExpandStateChangeListener(
         listener: OnExpandStateChangeListener,
-        notifyStateChanged: Boolean
+        notifyStateChanged: Boolean = true
     ) {
         stateChangeListeners.add(listener)
         if (notifyStateChanged) {
