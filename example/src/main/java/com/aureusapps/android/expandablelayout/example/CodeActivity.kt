@@ -1,4 +1,4 @@
-package com.aureusapps.android.expandablelayout
+package com.aureusapps.android.expandablelayout.example
 
 import android.graphics.Color
 import android.graphics.Typeface
@@ -14,10 +14,12 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setMargins
 import androidx.core.view.setPadding
+import com.aureusapps.android.expandablelayout.ExpandableLayout
 import com.aureusapps.android.extensions.addView
 import com.aureusapps.android.extensions.dp
 import com.aureusapps.android.extensions.generateLayoutParams
 import com.aureusapps.android.extensions.setTextStyle
+import com.aureusapps.android.styles.extensions.withButtonStyle_Elevated
 import com.google.android.material.button.MaterialButton
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
@@ -36,15 +38,18 @@ class CodeActivity : AppCompatActivity() {
                 orientation = LinearLayout.VERTICAL
             }
             .addView {
-                MaterialButton(it.context)
-                    .apply {
-                        materialButton = this
-                        layoutParams = it.generateLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                        setText(R.string.collapse)
-                        setOnClickListener {
-                            expandableLayout.toggleExpanded()
-                        }
+                MaterialButton(
+                    it.context.withButtonStyle_Elevated,
+                    null,
+                    com.aureusapps.android.styles.R.attr.buttonStyle_elevated
+                ).apply {
+                    materialButton = this
+                    layoutParams = it.generateLayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                    setText(R.string.collapse)
+                    setOnClickListener {
+                        expandableLayout.toggleExpanded()
                     }
+                }
             }
             .addView {
                 ExpandableLayout(it.context)
@@ -60,16 +65,9 @@ class CodeActivity : AppCompatActivity() {
                         animationDuration = 2000
                         contentGravity = ExpandableLayout.GRAVITY_CENTER
                         setBackgroundResource(R.drawable.frame)
-                        addExpandStateChangeListener(
-                            object : ExpandableLayout.OnExpandStateChangeListener {
-                                override fun onStateChanged(
-                                    expandableLayout: ExpandableLayout,
-                                    isExpanded: Boolean
-                                ) {
-                                    materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)
-                                }
-                            }
-                        )
+                        addExpandStateChangeListener { isExpanded ->
+                            materialButton.setText(if (isExpanded) R.string.collapse else R.string.expand)
+                        }
                     }
                     .addView {
                         TextView(it.context)
@@ -79,7 +77,7 @@ class CodeActivity : AppCompatActivity() {
                                     WRAP_CONTENT
                                 )
                                 setText(R.string.hello_world)
-                                setTextStyle(R.style.TextAppearance_MaterialComponents_Headline2)
+                                setTextStyle(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline2)
                                 setPadding(16.dp)
                                 setTextColor(Color.YELLOW)
                                 textAlignment = TextView.TEXT_ALIGNMENT_CENTER

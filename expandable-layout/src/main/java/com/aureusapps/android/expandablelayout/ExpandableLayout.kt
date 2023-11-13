@@ -23,8 +23,8 @@ open class ExpandableLayout @JvmOverloads constructor(
     defStyleRes: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    interface OnExpandStateChangeListener {
-        fun onStateChanged(expandableLayout: ExpandableLayout, isExpanded: Boolean)
+    fun interface OnExpandStateChangeListener {
+        fun onStateChanged(isExpanded: Boolean)
     }
 
     companion object {
@@ -69,12 +69,12 @@ open class ExpandableLayout @JvmOverloads constructor(
         }
 
     fun addExpandStateChangeListener(
-        listener: OnExpandStateChangeListener,
-        notifyStateChanged: Boolean = true
+        notifyStateChanged: Boolean = true,
+        listener: OnExpandStateChangeListener
     ) {
         stateChangeListeners.add(listener)
         if (notifyStateChanged) {
-            listener.onStateChanged(this, isExpanded)
+            listener.onStateChanged(isExpanded)
         }
     }
 
@@ -82,11 +82,19 @@ open class ExpandableLayout @JvmOverloads constructor(
         stateChangeListeners.remove(listener)
     }
 
-    fun setExpanded(expand: Boolean, animate: Boolean = true) {
+    fun setExpanded(animate: Boolean) {
+        setExpandedInternal(true, animate)
+    }
+
+    fun setCollapsed(animate: Boolean) {
+        setExpandedInternal(false, animate)
+    }
+
+    private fun setExpandedInternal(expand: Boolean, animate: Boolean) {
         if (expand == isExpanded) return
         isExpanded = expand
         stateChangeListeners.forEach { listener ->
-            listener.onStateChanged(this, expand)
+            listener.onStateChanged(expand)
         }
         if (animate && isLaidOut) {
             if (expandDirection == DIRECTION_VERTICAL) {
@@ -141,7 +149,7 @@ open class ExpandableLayout @JvmOverloads constructor(
     }
 
     fun toggleExpanded(animate: Boolean = true) {
-        setExpanded(!isExpanded, animate)
+        setExpandedInternal(!isExpanded, animate)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -156,7 +164,6 @@ open class ExpandableLayout @JvmOverloads constructor(
                     setMeasuredDimension(animatedValue, measuredHeight)
                 }
             }
-
         } else {
             // measure children
             var maxChildContentWidth = 0

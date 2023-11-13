@@ -1,7 +1,8 @@
-package com.aureusapps.android.expandablelayout
+package com.aureusapps.android.expandablelayout.example
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.aureusapps.android.expandablelayout.ExpandableLayout
 import com.google.android.material.button.MaterialButton
 
 class XmlActivity : AppCompatActivity() {
@@ -16,16 +17,9 @@ class XmlActivity : AppCompatActivity() {
         button.setOnClickListener {
             expandableLayout.toggleExpanded()
         }
-        expandableLayout.addExpandStateChangeListener(
-            object : ExpandableLayout.OnExpandStateChangeListener {
-                override fun onStateChanged(
-                    expandableLayout: ExpandableLayout,
-                    isExpanded: Boolean
-                ) {
-                    button.text = if (isExpanded) "Collapse" else "Expand"
-                }
-            }
-        )
+        expandableLayout.addExpandStateChangeListener { isExpanded ->
+            button.text = if (isExpanded) "Collapse" else "Expand"
+        }
     }
 
 }

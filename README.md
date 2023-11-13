@@ -1,6 +1,6 @@
 ## Expandable Layout
 
-[![android library](https://img.shields.io/badge/version-v1.0.0-orange)](https://github.com/UdaraWanasinghe/expandable-layout)
+[![android library](https://img.shields.io/badge/version-v1.0.0-orange)](https://github.com/UdaraWanasinghe/android-expandable-layout)
 
 Animated Android view that expands and collapses with a smooth animation in horizontal or vertical
 direction.
@@ -10,7 +10,7 @@ direction.
 1. Clone this repository.
 
    ```shell
-   git clone https://github.com/UdaraWanasinghe/expandable-layout.git
+   git clone https://github.com/UdaraWanasinghe/android-expandable-layout.git
    cd expandable-layout
    ```
 
@@ -32,7 +32,7 @@ direction.
 1. Include the `mavenLocal` repository in your project.
 
    ```groovy
-   // settings.gradle
+   // settings.gradle.kts
    dependencyResolutionManagement {
        repositories {
            mavenLocal()
@@ -42,7 +42,7 @@ direction.
 2. Import the library into your project.
 
    ```groovy
-   // module level build.gradle
+   // module level build.gradle.kts
    dependencies {
        implementation "com.aureusapps.android:expandable-layout:1.0.0"
    }
