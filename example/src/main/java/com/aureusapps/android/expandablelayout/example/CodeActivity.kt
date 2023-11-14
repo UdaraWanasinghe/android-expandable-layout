@@ -60,7 +60,7 @@ class CodeActivity : AppCompatActivity() {
                                 setMargins(8.dp)
                             }
                         expandDirection = ExpandableLayout.DIRECTION_VERTICAL
-                        setExpanded(true)
+                        setExpanded(false)
                         animationInterpolator = DecelerateInterpolator()
                         animationDuration = 2000
                         contentGravity = ExpandableLayout.GRAVITY_CENTER
