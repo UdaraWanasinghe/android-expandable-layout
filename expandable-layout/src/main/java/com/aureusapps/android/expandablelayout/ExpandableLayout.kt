@@ -90,13 +90,11 @@ open class ExpandableLayout @JvmOverloads constructor(
 
     private fun setExpandedInternal(expand: Boolean, animate: Boolean) {
         if (expand == isExpanded) return
-        isExpanded = expand
-        stateChangeListeners.forEach { listener ->
-            listener.onStateChanged(expand)
-        }
         if (animate) {
             animateExpansion(expand)
         } else {
+            isExpanded = expand
+            notifyStateListeners(expand)
             animator = null
             requestLayout()
         }
@@ -105,9 +103,13 @@ open class ExpandableLayout @JvmOverloads constructor(
     private fun animateExpansion(expand: Boolean) {
         val fromExtent = if (expandDirection == DIRECTION_VERTICAL) height else width
         if (isLaidOut) {
+            isExpanded = expand
+            notifyStateListeners(expand)
             animateExpansion(expand, fromExtent)
         } else {
             doOnNextLayout {
+                isExpanded = expand
+                notifyStateListeners(expand)
                 animateExpansion(expand, fromExtent)
             }
             requestLayout()
@@ -128,6 +130,12 @@ open class ExpandableLayout @JvmOverloads constructor(
             animationDuration * expandExtent / maxExtent
         }
         startAnimation(fromExtent, toExtent, duration, animationInterpolator) { requestLayout() }
+    }
+
+    private fun notifyStateListeners(expand: Boolean) {
+        stateChangeListeners.forEach { listener ->
+            listener.onStateChanged(expand)
+        }
     }
 
     fun toggleExpanded(animate: Boolean = true) {
