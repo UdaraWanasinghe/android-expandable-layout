@@ -28,5 +28,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "expandable-layout"
+rootProject.name = "android-expandable-layout"
 include("expandable-layout", "example")
