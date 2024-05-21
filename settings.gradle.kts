@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 pluginManagement {
     repositories {
         mavenLocal()
@@ -19,7 +21,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     versionCatalogs {
         create("libs") {
-            from("com.aureusapps:version-catalog:1.0.0")
+            from("com.aureusapps:version-catalog:1.0.1")
         }
     }
     repositories {
