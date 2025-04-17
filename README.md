@@ -1,6 +1,6 @@
 ## Expandable Layout
 
-[![android library](https://img.shields.io/badge/version-v1.0.0-orange)](https://github.com/UdaraWanasinghe/android-expandable-layout)
+[![android library](https://img.shields.io/badge/version-v1.0.2-orange)](https://github.com/UdaraWanasinghe/android-expandable-layout)
 
 Animated Android view that expands and collapses with a smooth animation in horizontal or vertical
 direction.
@@ -44,7 +44,7 @@ direction.
    ```groovy
    // module level build.gradle.kts
    dependencies {
-       implementation "com.aureusapps.android:expandable-layout:1.0.0"
+       implementation "com.aureusapps.android:expandable-layout:1.0.2"
    }
    ```
 
